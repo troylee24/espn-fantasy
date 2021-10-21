@@ -79,12 +79,5 @@ def data_to_df(json_out=False):
     df = pd.DataFrame(team_stats)
     return df
 
-def get_filters():
-    with open('data/filters.json', 'r') as f:
-        filters = json.load(f)
-    return filters
-
 if __name__ == "__main__":
-    con = sqlite3.connect('data/stats.db')
-    df = data_to_df(json_out=True)
-    df.to_sql('stats', con=con, if_exists="replace")
+    pass
