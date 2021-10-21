@@ -1,0 +1,20 @@
+header {
+    text-align: center;
+}
+
+#formsContainer {
+    margin: 0 50px;
+    display: flex;
+}
+
+#formsContainer > form {
+    flex: 1;
+}
+
+#formsContainer > form > select {
+    width: 100%;
+}
+
+.noFilter {
+    text-align: center;
+}
