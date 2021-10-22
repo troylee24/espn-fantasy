@@ -30,15 +30,17 @@ def data_to_json():
             keys_to_delete = ['playerId', 'stats', 'injured', 'eligibleSlots', 'lineupSlot', 'acquisitionType']
             for key in keys_to_delete:
                 del player_dict_copy[key]
-            
-            # 6 dictionaries (same keys) = full/proj(2) + season(2) + avg/total(2)
+            keys_to_rename = {'name': 'Name', 'position': 'Pos', 'proTeam': 'Team', 'injuryStatus': 'Status'}
+            for old, new in keys_to_rename.items():
+                player_dict_copy[new] = player_dict_copy.pop(old)
+            # 8 dictionaries (same keys) = full/proj(2) * season(2) * avg/total(2)
             for season_type in player_dict['stats']:
                 if not season_type in valid_seasons:
                     continue
                 for stats_type in player_dict['stats'][season_type]:
                     player_stats = player_dict['stats'][season_type][stats_type]
-                    missing_stats = ['3PTM', '3PTA', '3PT%']
-                    for stat in missing_stats:
+                    stats_missing = ['3PTM', '3PTA', '3PT%']
+                    for stat in stats_missing:
                         try:
                             player_stats[stat]
                         except KeyError:
@@ -49,14 +51,16 @@ def data_to_json():
                             del player_stats[stat]
                         except KeyError:
                             pass
+                    for key, value in player_stats.items():
+                        if isinstance(value, float):
+                            player_stats[key] = round(value, 2)
                     player_dict_copy.update(player_stats)
-                    roster_stats[season_type][stats_type].append(player_dict_copy)
-
+                    roster_stats[season_type][stats_type].append(player_dict_copy.copy())
         team_name = " ".join(team.team_name.split())
         for season_type in roster_stats:
             for stats_type in roster_stats[season_type]:
                 modified_roster_stats = {}
-                modified_roster_stats["team"] = team_name
+                modified_roster_stats["fantasy_team"] = team_name
                 modified_roster_stats["season"] = season_type[2:]
                 modified_roster_stats["season_type"] = season_types[season_type[:2]]
                 modified_roster_stats["stats_type"] = stats_type

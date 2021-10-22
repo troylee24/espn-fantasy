@@ -1,20 +1,74 @@
-header {
-    text-align: center;
-}
-
-#formsContainer {
-    margin: 0 50px;
-    display: flex;
-}
-
-#formsContainer > form {
-    flex: 1;
-}
-
-#formsContainer > form > select {
+#header {
+    margin: 40px 0;
     width: 100%;
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#header img {
+    float: left;
+    width: 125px;
+    height: 125px;
+    margin-right: 10px;
+} 
+#header h1 {
+    position: relative;
 }
 
-.noFilter {
-    text-align: center;
+#filterContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 20px 0;
+}
+#filterContainer > div {
+    display: grid;
+}
+#filterContainer > div:not(:last-child) {
+    margin-right: 20px;
+}
+#filterContainer > div > span {
+    margin-bottom: 3px;
+    font-style: italic;
+    font-size: small;
+}
+
+#tableContainer {
+    padding: 0px 50px;
+}
+
+.bootstrap-select {
+    max-width: 200px;
+}
+.bootstrap-select .btn {
+    border-style: solid;
+    border-left-width: 3px;
+    border-top: none;
+    border-bottom: none;
+    border-right: none;
+    padding: 8px 8px;
+    font-size: 16px;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+.bootstrap-select .btn:focus,
+.form-select:focus,
+.form-control:focus,
+.paginate_button > a:focus {
+    outline: none !important;
+    box-shadow: none !important;
+}
+#filterContainer > div:nth-child(1) .bootstrap-select .btn {
+    border-left-color: #04b4ec;
+}
+#filterContainer > div:nth-child(2) .bootstrap-select .btn {
+    border-left-color: #05e3f4;
+}
+#filterContainer > div:nth-child(3) .bootstrap-select .btn {
+    border-left-color: #05f144;
+}
+#filterContainer > div:nth-child(4) .bootstrap-select .btn {
+    border-left-color: #ffaf00;
 }
