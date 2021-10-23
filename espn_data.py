@@ -1,9 +1,12 @@
+from typing import List, Tuple
 from espn_api.basketball import League
 from collections import defaultdict
 import json
 import pandas as pd
 from pandas.core.frame import DataFrame
+from pandas.core.series import Series
 
+"""LEAGUE SETTINGS"""
 league_id = 1626888334
 year = 2022
 espn_s2 = 'AEB1q7wbcxFuEhtKHV%2Fw%2FpePdTBf1PPbePu8JV%2BpmXsSUHbLlWfEPioAA%2FA983DvVmc5NfcKYtKxBK4WZWCcoZdzoEeYjXLTVyA0TVbwsKG571X1YmCAS2urqwg8FO%2BONFDk%2BFSScnqPYqPwi9AS55zUJzMKxyxtLzNL2NlcbIBTAKwSVgPr3YTHqymKNF1fQNwmLiP%2Bv18BWa5jZxl8xO3WpgioNZKnTGisOXiXSXiWB%2B6Mb8B%2FvlL7Jz3fm7UZG026rdTXOvvFECyzyMrwu6I8'
@@ -14,12 +17,12 @@ league = League(league_id=league_id, year=year, espn_s2=espn_s2, swid=swid)
 valid_seasons = {'002021', '102021', '002022', '102022'}
 season_views = {'00': 'full', '10': 'proj'}
 
-# regular zscore calculation
-def zscore(df: DataFrame, col):
+def zscore(df: DataFrame, col: str) -> Series:
+    """Calculates zscore based on a DataFrame column."""
     return (df[col] - df[col].mean())/df[col].std(ddof=0)
 
-# calculates zscore for percent stats based on attempted
-def zscore_percent(df: DataFrame, col):
+def zscore_percent(df: DataFrame, col: str) -> Series:
+    """Calculates zscore for percent stats based on attempted."""
     # i.e. FG% -> FG -> FGA, FGM
     base = col[:-1]
     made = base + 'M'
@@ -31,8 +34,13 @@ def zscore_percent(df: DataFrame, col):
     df[col] = impact
     return zscore(df, col)
 
-def get_color(zscore):
+def get_color(zscore) -> str:
+    """
+    Assigns a color based on a 3-point gradient of red-white-green
+    Returns 6-digit hexadecimal string based on zscore.
+    """
     def clamp(x):
+        """Clamps rgb value to (0, 255)."""
         return max(0, min(x, 255))
     
     red = (255, 0, 0)
@@ -49,9 +57,14 @@ def get_color(zscore):
     hex = '#%02x%02x%02x' % (clamp(r), clamp(g), clamp(b))
     return hex
 
-def calculate_grades(data: dict):
-    df1 = pd.DataFrame()
-    df2 = pd.DataFrame()
+def calculate_grades(data: dict) -> None:
+    """
+    Writes the zscores of each record to a json file.
+    Writes the color grades of each record to a json file.
+    """
+    zscores_full_df = pd.DataFrame()
+    grades_full_df = pd.DataFrame()
+
     for season_year in data:
         for season_view in data[season_year]:
             for stats_view in data[season_year][season_view]:
@@ -59,6 +72,7 @@ def calculate_grades(data: dict):
                 df = pd.DataFrame(records)
                 zscore_df = pd.DataFrame(records)
                 grade_df = pd.DataFrame(records)
+                # calculate zscore for stat -> calculate color grade for zscore
                 for col in df.columns:
                     if df[col].dtype == "float64":
                         if '%' in col:
@@ -70,25 +84,38 @@ def calculate_grades(data: dict):
                         else:
                             grade_df[col] = zscore_df[col].map(lambda z: get_color(z))
                 
-                df1 = zscore_df if df1.empty else df1.append(zscore_df, ignore_index=True)
-                df2 = grade_df if df2.empty else df2.append(grade_df, ignore_index=True)
+                # add total zscore column and calculate zscore for that column
+                cats = ['PTS', 'BLK', 'STL', 'AST', 'REB', 'TO', 'FG%', 'FT%', '3PTM']
+                zscore_df['Z'] = zscore_df[cats].sum(axis=1)
+                zscore_df['Z'] = zscore(zscore_df, 'Z').round(2)
+                grade_df['Z'] = zscore_df['Z'].map(lambda z: get_color(z))
 
-    df1 = df1.sort_values(by=['id'])
-    df2 = df2.sort_values(by=['id'])
+                # add dataframes to resulting dataframe
+                zscores_full_df = zscore_df if zscores_full_df.empty else zscores_full_df.append(zscore_df, ignore_index=True)
+                grades_full_df = grade_df if grades_full_df.empty else grades_full_df.append(grade_df, ignore_index=True)
 
-    df1.to_json('data/zscores.json', orient="records")
-    df2.to_json('data/grades.json', orient="records")
+    # sort values by id in order to match the stats.json data
+    zscores_full_df = zscores_full_df.sort_values(by=['id'])
+    grades_full_df = grades_full_df.sort_values(by=['id'])
+
+    # write dataframes to json
+    zscores_full_df.to_json('data/zscores.json', orient="records")
+    grades_full_df.to_json('data/grades.json', orient="records")
 
 def data_to_json() -> None:
+    """
+    Root function that interprets ESPN fantasy basketball league data to be eventually passed to Flask app.
+    In the end, should have indirectly/directly produced: grades.json, stats.json, zscores.json 
+    """
     team_roster_stats = []
     grades_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
     id = 0
 
     for team in league.teams:
         team_name = " ".join(team.team_name.split())
-        roster_stats = defaultdict(lambda: defaultdict(list))
 
         for player in team.roster:
+            # split player attributes into info (non-numeric) and stats (numeric)
             player_info: dict = vars(player)
             player_full_stats: dict = player_info['stats']
             # deleting unwanted attributes
@@ -103,7 +130,7 @@ def data_to_json() -> None:
             for season in player_full_stats:
                 if not season in valid_seasons:
                     continue
-                # 002022 -> 00 (view) + 2022 (year)
+                # i.e. 002022 -> 00 (view) + 2022 (year)
                 season_year = season[2:]
                 season_view = season_views[season[:2]]
                 
@@ -139,6 +166,7 @@ def data_to_json() -> None:
                     player_data.update(player_info)
                     player_data.update(player_stats)
 
+                    # reorder dictionary so that it is consistent with grades.json and zscores.json
                     order = ['id', 'Fantasy Team', 'Season Year', 'Season View', 'Stats View', 'Name', 'Pos', 'Team', 'GP', 'MPG', 'PTS', 'BLK', 'STL', 'AST', 'REB', 'TO', 'FGM', 'FGA', 'FG%', 'FTM', 'FTA', 'FT%', '3PTM', '3PTA', '3PT%']
                     ordered_player_data = {}
                     for key in order:
@@ -152,12 +180,21 @@ def data_to_json() -> None:
 
                     id += 1
     
-    with open("data/stats.json", 'w') as f:
-        json.dump(team_roster_stats, f)
-    
+    # produce zscores.json and grades.json
     calculate_grades(grades_dict)
 
-def json_to_data():
+    # copy total z score key to every record
+    with open('data/zscores.json', 'r') as f:
+        zscores = json.load(f)
+
+    for i in range(len(zscores)):
+        team_roster_stats[i]['Z'] = zscores[i]['Z']
+    
+    with open('data/stats.json', 'w') as f:
+        json.dump(team_roster_stats, f)
+
+def json_to_data() -> Tuple[List, List]:
+    """Returns loaded data from stats.json and grades.json to be passed to Flask app"""
     with open('data/stats.json', 'r') as f:
         data = json.load(f)
     with open('data/grades.json', 'r') as f:

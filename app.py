@@ -1,6 +1,6 @@
 import json
 from flask import Flask, render_template
-from espn_data import json_to_data
+from espn_data import data_to_json, json_to_data
 
 app = Flask(__name__)
 
