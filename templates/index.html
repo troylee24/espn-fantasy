@@ -38,20 +38,20 @@
         <table id="statsTable" class="table table-hover">
             <thead>
                 <tr>
-                {% for key in data[0] %}
+                {% for key in records[0] %}
                     <th>{{ key }}</th>
                 {% endfor %}
                 </tr>
             </thead>
             <tbody>
-            {% for record in data %}
+            {% for record in records %}
                 {% set i = loop.index0 %}
                 <tr>
-                {% for key in record %}
-                    {% if record[key] is number %}
-                        <td style="background-color:{{ grades[i][key] }};">{{ record[key] }}</td>
+                {% for key, value in record.items() %}
+                    {% if value is number %}
+                        <td style="background-color:{{ grades[i][key] }};">{{ value }}</td>
                     {% else %}
-                        <td>{{ record[key] }}</td>
+                        <td>{{ value }}</td>
                     {% endif %}
                 {% endfor %}
                 </tr>
@@ -82,7 +82,7 @@
                         "visible": false,
                     },
                     {
-                        "targets": [0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
+                        "targets": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
                         "searchable": false,
                     },
                     {
