@@ -38,54 +38,62 @@
         <table id="statsTable" class="table table-hover">
             <thead>
                 <tr>
-                {% for stat in data[0]["stats"][0] %}
-                    <th>{{ stat }}</th>
-                {% endfor %}
                 {% for key in data[0] %}
-                    {% if key != "stats" %}
                     <th>{{ key }}</th>
-                    {% endif %}
                 {% endfor %}
                 </tr>
             </thead>
             <tbody>
-                {% for entry in data %}
-                    {% for player in entry["stats"] %}
-                        <tr>
-                        {% for stat in player.values() %}
-                            <td>{{ stat }}</td>
-                        {% endfor %}
-                        {% for key in entry %}
-                            {% if key != "stats" %}
-                            <td>{{ entry[key] }}</td>
-                            {% endif %}
-                        {% endfor %}
-                        </tr>
-                    {% endfor %}
-                {% endfor%}
+            {% for record in data %}
+                {% set i = loop.index0 %}
+                <tr>
+                {% for key in record %}
+                    {% if record[key] is number %}
+                        <td style="background-color:{{ grades[i][key] }};">{{ record[key] }}</td>
+                    {% else %}
+                        <td>{{ record[key] }}</td>
+                    {% endif %}
+                {% endfor %}
+                </tr>
+            {% endfor %}
             </tbody>
         </table>
     </div>
     <script>
         var columnNames = {
-            22: "Fantasy Team",
-            23: "Season",
-            24: "Season Type",
-            25: "Stats Type"
+            1: "Fantasy Team",
+            2: "Season",
+            3: "Season View",
+            4: "Stats View"
         }
         $(document).ready(function() {
             $('#statsTable').DataTable( {
+                "scrollX": true,
                 "autoWidth": false,
                 "pageLength": 50,
                 "lengthMenu": [
                     [10, 50, 100, -1],
                     [10, 50, 100, "All"]
                 ],
+                "order": [[5, "asc"]],
                 "columnDefs": [
                     {
-                        "targets": [22, 23, 24, 25],
-                        "visible": false
+                        "targets": [0, 1, 2, 3, 4],
+                        "visible": false,
                     },
+                    {
+                        "targets": [0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24],
+                        "searchable": false,
+                    },
+                    {
+                        "orderSequence": ["desc", "asc"], "targets": [8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+                    },
+                    {
+                        "width": "40px", "targets": [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+                    },
+                    {
+                        "width": "200px", "targets": [5]
+                    }
                 ],
                 initComplete: function () {
                     this.api().columns(Object.keys(columnNames)).every( function () {

@@ -1,3 +1,4 @@
+/* header */
 #header {
     margin: 40px 0;
     width: 100%;
@@ -16,6 +17,7 @@
     position: relative;
 }
 
+/* filterContainer */
 #filterContainer {
     display: flex;
     align-items: center;
@@ -34,10 +36,17 @@
     font-size: small;
 }
 
+/* tableContainer */
 #tableContainer {
-    padding: 0px 50px;
+    padding: 0px 5%;
+    /* padding: 0px 10%; */
+}
+#statsTable {
+    width: 1700px;
+    /* width: 1500px; */
 }
 
+/* bootstrap modifications */
 .bootstrap-select {
     max-width: 200px;
 }
