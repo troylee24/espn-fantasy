@@ -7,7 +7,7 @@ app = Flask(__name__)
 def index():
     espnData = EspnData()
     records, zscores, grades = espnData.from_json()
-    return render_template('index.html', records=records, grades=grades)
+    return render_template('index.html', records=records, zscores=zscores, grades=grades)
 
 @app.route('/load')
 def load():

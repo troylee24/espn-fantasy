@@ -39,12 +39,18 @@
 /* tableContainer */
 #tableContainer {
     padding: 0px 5%;
-    /* padding: 0px 10%; */
 }
-#statsTable {
-    width: 1700px;
-    /* width: 1500px; */
+/* #statsTable tbody tr td {
+    position: relative;
 }
+#statsTable tbody tr td::after {
+    font-size: 12px;
+    content: attr(zscore);
+    position: absolute;
+    top: 2px;
+    right: 6px;
+    margin-left: 6px;
+} */
 
 /* bootstrap modifications */
 .bootstrap-select {
