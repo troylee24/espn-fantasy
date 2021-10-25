@@ -17,5 +17,5 @@ The data is extracted using the [espn-api](https://github.com/cwendt94/espn-api)
 * [dataframe_version](dataframe_version) - `Python` `Flask` `HTML/CSS/JS`
   * flask application w/ strictly datatables
   * uses pandas dataframes and json as data serialization
-* [streamlit_version]() `Python` `Streamlit`
-  * *in-progress...*
+* [streamlit_version]() `Python` `Streamlit` (**discontinued!**)
+  * streamlit application w/ dataframes
