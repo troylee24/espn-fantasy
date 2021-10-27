@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>2021-22 Fantasy Basketball Projections</title>
+    <title>Player Stats</title>
 
     <!-- Required meta tags -->
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Bootstrap Select + Bootstrap4 + jQuery3 -->
     <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
@@ -25,103 +26,74 @@
     <script type="text/javascript" src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
 
     <!-- Custom -->
-    <link rel="stylesheet" href="/static/css/style.css">    
+    <link rel="stylesheet" href="/static/css/style.css">   
 </head>
 <body>
-    <div id="header">
-        <img src="static/imgs/espn-fantasy-icon.png">
-        <h1>Fantasy Basketball League Analyzer</h1>
+    <div id="loader"></div>
+    <div id="content-grid">
+        <div id="buttonContainer">
+            <button id="reloadDataButton" class="btn btn-primary">Reload Data</button>
+        </div>
+
+        <div id="header">
+            <img src="static/imgs/espn-fantasy-icon.png">
+            <h1>Fantasy Basketball League Analyzer</h1>
+        </div>
+
+        <div id="formContainer">
+        {% for col in cols %}
+            {% if col != 'id' %}
+                {% if col in ['Fantasy Team', 'Season Year', 'Season View', 'Stats View'] %}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" column={{ loop.index0 }}>
+                    <label class="form-check-label" for="flexCheckDefault">{{ col }}</label>
+                </div>
+                {% else %}
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" column={{ loop.index0 }} checked>
+                    <label class="form-check-label" for="flexCheckChecked">{{ col }}</label>
+                </div>
+                {% endif %}
+            {% endif %}
+        {% endfor %}
+        </div>
+
+        <!-- filters added in script -->
+        <div id="filterContainer"></div>
+        
+        <!-- datatable generated in script -->
+        <div id="tableContainer">
+            <table id="statsTable" class="table table-hover nowrap">
+                <thead>
+                    <tr>
+                    {% for col in cols %}
+                        <th>{{ col }}</th>
+                    {% endfor %}
+                    </tr>
+                </thead>
+            </table>
+        </div>
     </div>
-    <div id="filterContainer">
-    </div>
-    <div id="tableContainer">
-        <table id="statsTable" class="table table-hover nowrap">
-            <thead>
-                <tr>
-                {% for key in records[0] %}
-                    <th>{{ key }}</th>
-                {% endfor %}
-                </tr>
-            </thead>
-            <tbody>
-            {% for record in records %}
-                {% set i = loop.index0 %}
-                <tr>
-                {% for key, value in record.items() %}
-                    {% if value is number %}
-                        <td style="background-color:{{ grades[i][key] }};">{{ value }}</td>
-                        <!-- <td zscore="zscore" style="background-color:{{ grades[i][key] }};">{{ value }}</td> -->
-                    {% else %}
-                        <td>{{ value }}</td>
-                    {% endif %}
-                {% endfor %}
-                </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
+
     <script>
-        var columnNames = {
-            1: "Fantasy Team",
-            2: "Season Year",
-            3: "Season View",
-            4: "Stats View"
-        }
         $(document).ready(function() {
-            $('#statsTable').DataTable( {
-                "scrollX": true,
-                // "autoWidth": false,
-                "pageLength": 50,
-                "lengthMenu": [
-                    [10, 50, 100, -1],
-                    [10, 50, 100, "All"]
-                ],
-                "order": [[5, "asc"]],
-                "columnDefs": [
-                    {
-                        "targets": [0, 1, 2, 3, 4],
-                        "visible": false,
-                    },
-                    {
-                        "targets": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
-                        "searchable": false,
-                    },
-                    {
-                        "orderSequence": ["desc", "asc"], "targets": [8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
-                    },
-                    {
-                        "width": "35px", "targets": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
-                    },
-                    {
-                        "width": "186px", "targets": [5]
-                    }
-                ],
-                initComplete: function () {
-                    this.api().columns(Object.keys(columnNames)).every( function () {
-                        var column = this;
-                        var div = $('<div></div>')
-                        var span = $('<span>'+columnNames[column.index()]+'</span>').appendTo(div)
-                        var select = $('<select class="selectpicker"><option value=""></option></select>')
-                            .appendTo( $(div) )
-                            .on( 'change', function () {
-                                var val = $.fn.dataTable.util.escapeRegex(
-                                    $(this).val()
-                                );
-        
-                                column
-                                    .search( val ? '^'+val+'$' : '', true, false )
-                                    .draw();
-                            } );
-        
-                        div.appendTo('#filterContainer')
-                        column.data().unique().sort().each( function ( d, j ) {
-                            select.append( '<option value="'+d+'">'+d+'</option>' )
-                        } );
-                    } );
-                }
-            } );
-        } );
+            $("#reloadDataButton").on('click', function(e) {
+                e.preventDefault();
+                $("#loader").show();
+                $.getJSON('/reload_data',
+                    function() {
+                        location.reload();
+                });
+            });
+        });
     </script>
-    <script src="/static/js/app.js"></script>
+    <script src="/static/js/datatable.js"></script>
+    <script>
+        var records = {{ records|tojson }};
+        var columns = {{ columns|tojson }};
+        var cols = {{ cols|safe }};
+        var grades = {{ grades|tojson }};
+        initVars(records, columns, cols, grades);
+    </script>
 </body>
 </html>

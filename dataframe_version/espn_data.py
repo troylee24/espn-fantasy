@@ -32,7 +32,7 @@ class EspnData:
         self.zscores_json = self.data_dir + 'zscores.json'
         self.grades_json = self.data_dir + 'grades.json'
 
-    def main(self) -> None:
+    def run_api(self) -> None:
         self.get_player_records()
         self.calculate_grades()
         self.to_json()
@@ -170,9 +170,5 @@ class EspnData:
                         self.records_df = self.records_df.append(player_record, ignore_index=True)
 
         self.records_df.insert(loc=0, column='id', value=self.records_df.index)
-        col_order = ['id', 'Fantasy Team', 'Season Year', 'Season View', 'Stats View', 'Name', 'Pos', 'Team', 'GP', 'MPG', 'PTS', 'BLK', 'STL', 'AST', 'REB', 'TO', 'FGM', 'FGA', 'FG%', 'FTM', 'FTA', 'FT%', '3PTM', '3PTA', '3PT%']
+        col_order = ['id', 'Fantasy Team', 'Season Year', 'Season View', 'Stats View', 'Name', 'Pos', 'Team', 'GP', 'MPG', 'PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FGM', 'FGA', 'FG%', 'FTM', 'FTA', 'FT%', '3PTM', '3PTA', '3PT%']
         self.records_df = self.records_df[col_order]
-
-if __name__ == "__main__":
-    espnData = EspnData()
-    espnData.main()

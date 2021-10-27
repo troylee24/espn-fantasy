@@ -3,17 +3,21 @@ from espn_data import EspnData
 
 app = Flask(__name__)
 
+@app.route('/reload_data')
+def reload_data():
+    espnData = EspnData()
+    espnData.run_api()
+    return ('', 204)
+
 @app.route('/')
-def index():
+def test():
     espnData = EspnData()
     records, zscores, grades = espnData.from_json()
-    return render_template('index.html', records=records, zscores=zscores, grades=grades)
-
-@app.route('/load')
-def load():
-    espnData = EspnData()
-    espnData.main()
-    return '<h1>Data Loaded.</h1>'
+    cols = list(records[0].keys())
+    columns = []
+    for col in cols:
+        columns.append({'data': col})
+    return render_template('index.html', records=records, cols=cols, columns=columns, zscores=zscores, grades=grades)
 
 if __name__ == "__main__":
     app.run(debug=True)
