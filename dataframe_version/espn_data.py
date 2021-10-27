@@ -6,6 +6,7 @@ from pandas.core.series import Series
 import pandas as pd
 import numpy as np
 import json
+import math
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
@@ -79,6 +80,10 @@ class EspnData:
         red = (255, 0, 0)
         white = (255, 255, 255)
         green = (0, 255, 0)
+
+        if math.isnan(zscore):
+            return '#%02x%02x%02x' % white
+
         start, end = white, red if zscore < 0 else green
 
         x = abs(zscore)
@@ -94,15 +99,14 @@ class EspnData:
                     query_df = self.records_df.query(query)
                     zscore_df = query_df.copy()
                     grade_df = query_df.copy()
-                    numeric_cols = query_df.select_dtypes(include=[np.number]).columns
-                    numeric_cols = numeric_cols.drop(['id'])
+                    numeric_cols = query_df.select_dtypes(include=[np.number]).columns.drop(['id'])
                     
                     for col in numeric_cols:
                         zscore_df[col] = self.zscore_percent(query_df, col) if '%' in col else self.zscore(query_df, col)
                         grade_df[col] = zscore_df[col].map(lambda z: self.color(-z)) if col == 'TO' else zscore_df[col].map(lambda z: self.color(z))
 
                     # add zscores for each cat and calculate the zscore of the total
-                    zscore_df['Z'] = zscore_df[self.cats].sum(axis=1)
+                    zscore_df['Z'] = zscore_df[self.cats].sum(axis=1, skipna=False)
                     zscore_df['Z'] = self.zscore(zscore_df, 'Z').round(2)
                     grade_df['Z'] = zscore_df['Z'].map(lambda z: self.color(z))
 
@@ -111,64 +115,58 @@ class EspnData:
         
         self.zscores_df = self.zscores_df.sort_values(by=['id'])
         self.grades_df = self.grades_df.sort_values(by=['id'])
-
         self.records_df['Z'] = self.zscores_df['Z'].values
 
     def get_player_records(self) -> None:
         # XXYYYY: XX = full/proj, YYYY = year
-        valid_seasons = {'002021', '102021', '002022', '102022'}
-        season_views = {'00': 'full', '10': 'proj'}
+        season_view_nums = {'full': '00', 'proj': '10'}
+        stats = {'GP', 'MPG', 'PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FGM', 'FGA', 'FG%', 'FTM', 'FTA', 'FT%', '3PTM', '3PTA', '3PT%'}
 
         for team in self.league.teams:
             team_name = " ".join(team.team_name.split())
             
             for player in team.roster:
-                player_attr: dict = vars(player)
-                player_full_stats: dict = player_attr['stats']
+                player_vars: dict = vars(player)
 
-                # deleting unwanted attributes
-                keys_to_delete = ['playerId', 'stats', 'injured', 'eligibleSlots', 'lineupSlot', 'acquisitionType', 'injuryStatus']
-                for key in keys_to_delete:
-                    del player_attr[key]
-                # renaming keys
-                keys_to_rename = {'name': 'Name', 'position': 'Pos', 'proTeam': 'Team'}
-                for old, new in keys_to_rename.items():
-                    player_attr[new] = player_attr.pop(old)
+                player_info = {}
+                attributes = {'name': 'Name', 'position': 'Pos', 'proTeam': 'Team'}
+                for old, new in attributes.items():
+                    player_info[new] = player_vars[old]
                 
-                player_info = player_attr
+                player_full_stats: dict = player_vars['stats']
 
-                for season in player_full_stats:
-                    if not season in valid_seasons:
-                        continue
-                    season_year = season[2:]
-                    season_view = season_views[season[:2]]
+                for season_year in self.season_years:
+                    for season_view in self.season_views:
+                        season_view_num = season_view_nums[season_view]
+                        season = season_view_num + season_year
 
-                    for stats_view in player_full_stats[season]:
-                        player_stats: dict = player_full_stats[season][stats_view]
-                        
-                        stats_missing = ['3PTM', '3PTA', '3PT%']
-                        for stat in stats_missing:
-                            try: player_stats[stat]
-                            except KeyError: player_stats[stat] = 0.0
+                        for stats_view in self.stats_views:
+                            player_stats = {}
+                            try:
+                                player_stats_data: dict = player_full_stats[season][stats_view]
+                                for stat in stats:
+                                    try:
+                                        player_stats[stat] = round(player_stats_data[stat], 2)
+                                    except KeyError:
+                                        player_stats[stat] = 0.0
+                            except KeyError:                                
+                                for stat in stats:
+                                    player_stats[stat] = None
 
-                        stats_to_delete = ['OREB', 'DREB', 'PF', 'GS', 'MIN']
-                        for stat in stats_to_delete:
-                            try: del player_stats[stat]
-                            except KeyError: pass
-                        
-                        for key, value in player_stats.items():
-                            player_stats[key] = round(value, 2)
-
-                        player_record = {}
-                        player_record["Fantasy Team"] = team_name
-                        player_record["Season Year"] = season_year
-                        player_record["Season View"] = season_view
-                        player_record["Stats View"] = stats_view
-                        player_record.update(player_info)
-                        player_record.update(player_stats)
-                        
-                        self.records_df = self.records_df.append(player_record, ignore_index=True)
-
+                            player_record = {}
+                            player_record['Fantasy Team'] = team_name
+                            player_record['Season Year'] = season_year
+                            player_record['Season View'] = season_view
+                            player_record['Stats View'] = stats_view
+                            player_record.update(player_info)
+                            player_record.update(player_stats)
+                            
+                            self.records_df = self.records_df.append(player_record, ignore_index=True)
+        
         self.records_df.insert(loc=0, column='id', value=self.records_df.index)
         col_order = ['id', 'Fantasy Team', 'Season Year', 'Season View', 'Stats View', 'Name', 'Pos', 'Team', 'GP', 'MPG', 'PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FGM', 'FGA', 'FG%', 'FTM', 'FTA', 'FT%', '3PTM', '3PTA', '3PT%']
         self.records_df = self.records_df[col_order]
+
+if __name__ == "__main__":
+    espnData = EspnData()
+    espnData.run_api()
