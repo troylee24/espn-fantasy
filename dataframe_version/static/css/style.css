@@ -79,27 +79,18 @@
     position: relative;
 }
 
-/* buttonContainer */
-/* #buttonContainer {
-    padding: 20px;
-} */
-
 /* formContainer */
 #formContainer {
     display: grid;
     justify-content: space-evenly;
     grid-template-columns: auto auto auto auto auto;
 }
-/* #formContainer .form-check {
-    display: inline-grid;
-} */
-
 
 /* filterContainer */
 #filterContainer {
     display: grid;
-    justify-content: space-evenly;
-    grid-template-columns: auto auto auto auto;
+    justify-content: center;
+    grid-template-columns: max-content max-content max-content max-content;
     column-gap: 20px;
 }
 #filterContainer > div {

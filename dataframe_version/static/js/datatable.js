@@ -11,8 +11,8 @@ $(document).ready(function() {
     var statsTable = $("#statsTable").DataTable({
         "data": records,
         "columns": columns,
+        "language": { "search": "Search Players:" },
         "scrollX": true,
-        // "autoWidth": false,
         "pageLength": 25,
         "lengthMenu": [
             [10, 25, 50, 100, -1],
@@ -56,7 +56,8 @@ $(document).ready(function() {
             this.api().columns(Object.keys(hiddenColumns)).every( function () {
                 var column = this;
                 var div = $('<div></div>')
-                var span = $('<span>'+hiddenColumns[column.index()]+'</span>').appendTo(div)
+                var span = $('<span>'+hiddenColumns[column.index()]+'</span>')
+                span.appendTo(div)
                 var select = $('<select class="selectpicker"><option value=""></option></select>')
                     .appendTo( $(div) )
                     .on( 'change', function () {
@@ -76,9 +77,15 @@ $(document).ready(function() {
         }
     })
 
-    $('.form-check-input').change(function (e) {
+    $('.form-check-input').change(function(e) {
         e.preventDefault();
         var column = statsTable.column( $(this).attr('column') );
         column.visible( ! column.visible() );
     } );
+
+    $('#statsTable_filter input')
+        .off()
+        .on('keyup', function() {
+            statsTable.column(5).search(this.value).draw();
+        });
 });
