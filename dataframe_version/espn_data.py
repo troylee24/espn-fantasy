@@ -65,7 +65,7 @@ class EspnData:
         impact = (df[col] - avg_p)*df[att]
 
         # calculate zscores of impact
-        df[col] = impact
+        df[col] = impact.values
         return self.zscore(df, col)
     
     def color(self, zscore) -> str:
@@ -99,7 +99,7 @@ class EspnData:
                     query_df = self.records_df.query(query)
                     zscore_df = query_df.copy()
                     grade_df = query_df.copy()
-                    numeric_cols = query_df.select_dtypes(include=[np.number]).columns.drop(['id'])
+                    numeric_cols = query_df.select_dtypes(include=[np.number])
                     
                     for col in numeric_cols:
                         zscore_df[col] = self.zscore_percent(query_df, col) if '%' in col else self.zscore(query_df, col)
@@ -109,13 +109,18 @@ class EspnData:
                     zscore_df['Z'] = zscore_df[self.cats].sum(axis=1, skipna=False)
                     zscore_df['Z'] = self.zscore(zscore_df, 'Z').round(2)
                     grade_df['Z'] = zscore_df['Z'].map(lambda z: self.color(z))
+                    
+                    rank = zscore_df['Z'].rank(ascending=False)
+                    zscore_df.insert(4, 'R', rank)
+                    grade_df.insert(4, 'R', rank)
 
-                    self.zscores_df = zscore_df if self.zscores_df.empty else self.zscores_df.append(zscore_df, ignore_index=True)
-                    self.grades_df = grade_df if self.grades_df.empty else self.grades_df.append(grade_df, ignore_index=True)
+                    self.zscores_df = zscore_df if self.zscores_df.empty else self.zscores_df.append(zscore_df)
+                    self.grades_df = grade_df if self.grades_df.empty else self.grades_df.append(grade_df)
         
-        self.zscores_df = self.zscores_df.sort_values(by=['id'])
-        self.grades_df = self.grades_df.sort_values(by=['id'])
+        self.zscores_df = self.zscores_df.sort_index()
+        self.grades_df = self.grades_df.sort_index()
         self.records_df['Z'] = self.zscores_df['Z'].values
+        self.records_df.insert(4, 'R', self.zscores_df['R'])
 
     def get_player_records(self) -> None:
         # XXYYYY: XX = full/proj, YYYY = year
@@ -163,8 +168,7 @@ class EspnData:
                             
                             self.records_df = self.records_df.append(player_record, ignore_index=True)
         
-        self.records_df.insert(loc=0, column='id', value=self.records_df.index)
-        col_order = ['id', 'Fantasy Team', 'Season Year', 'Season View', 'Stats View', 'Name', 'Pos', 'Team', 'GP', 'MPG', 'PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FGM', 'FGA', 'FG%', 'FTM', 'FTA', 'FT%', '3PTM', '3PTA', '3PT%']
+        col_order = ['Fantasy Team', 'Season Year', 'Season View', 'Stats View', 'Name', 'Pos', 'Team', 'GP', 'MPG', 'PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FGM', 'FGA', 'FG%', 'FTM', 'FTA', 'FT%', '3PTM', '3PTA', '3PT%']
         self.records_df = self.records_df[col_order]
 
 if __name__ == "__main__":

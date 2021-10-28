@@ -42,18 +42,16 @@
 
         <div id="formContainer">
         {% for col in cols %}
-            {% if col != 'id' %}
-                {% if col in ['Fantasy Team', 'Season Year', 'Season View', 'Stats View'] %}
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" column={{ loop.index0 }}>
-                    <label class="form-check-label" for="flexCheckDefault">{{ col }}</label>
-                </div>
-                {% else %}
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" column={{ loop.index0 }} checked>
-                    <label class="form-check-label" for="flexCheckChecked">{{ col }}</label>
-                </div>
-                {% endif %}
+            {% if col in ['Fantasy Team', 'Season Year', 'Season View', 'Stats View'] %}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="flexCheckDefault" column={{ loop.index0 }}>
+                <label class="form-check-label" for="flexCheckDefault">{{ col }}</label>
+            </div>
+            {% else %}
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" value="" id="flexCheckChecked" column={{ loop.index0 }} checked>
+                <label class="form-check-label" for="flexCheckChecked">{{ col }}</label>
+            </div>
             {% endif %}
         {% endfor %}
         </div>

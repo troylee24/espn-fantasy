@@ -21,18 +21,18 @@ $(document).ready(function() {
         "order": [[5, "asc"]],
         "columnDefs": [
             {
-                "targets": [0, 1, 2, 3, 4],
+                "targets": [0, 1, 2, 3],
                 "visible": false,
             },
             {
-                "targets": [0, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
+                "targets": [4, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25],
                 "searchable": false,
             },
             {
                 "orderSequence": ["desc", "asc"], "targets": [8, 9, 10, 11, 12, 13, 14, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
             },
             {
-                "width": "35px", "targets": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
+                "width": "31px", "targets": [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25]
             },
             {
                 "width": "186px", "targets": [5]
@@ -48,10 +48,10 @@ $(document).ready(function() {
         ],
         initComplete: function () {
             var hiddenColumns = {
-                1: "Fantasy Team",
-                2: "Season Year",
-                3: "Season View",
-                4: "Stats View",
+                0: "Fantasy Team",
+                1: "Season Year",
+                2: "Season View",
+                3: "Stats View",
             }
             this.api().columns(Object.keys(hiddenColumns)).every( function () {
                 var column = this;
