@@ -1,0 +1,15 @@
+1. records, grades, and zscores for the columns will be the same
+2. zscore totals need to change based on selected categories (i.e. punting a cat)
+    - need separate endpoint to recalculate based on selected stats.
+
+WORKFLOW
+1. espnData -> __init__() -> create_season_tables()
+2. create_season_tables() -> populates self.season_tables with seasonTable objects
+3. for each seasonTable object -> __init__() -> calculate_zscores(), to_json()
+
+NEW WORKFLOW
+1. EspnData -> __init__()
+2. espnData.create_season_tables()
+3. create_season_tables() -> populates self.season_tables with SeasonTable objects
+4. for each SeasonTable object -> __init__()
+5. seasonTable.calculate_zscores(), seasonTable.to_json()

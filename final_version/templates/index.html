@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <!-- Datatables + Bootstrap5 + jQuery3 -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css"/>
+     
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+    
+    <!-- Custom -->
+    <link rel="stylesheet" href="/static/css/style.css">   
+</head>
+<body>
+    <div id="loader"></div>
+    
+    <div id="content-grid">
+        <div id="header">
+            <img src="static/imgs/espn-fantasy-icon.png">
+            <h1>Fantasy Basketball League Analyzer</h1>
+        </div>
+        
+        <div id="catsInputContainer">
+            <div id="formContainer">
+            {% set cat_i = namespace(value=0) %}
+            {% for header in headers %}
+                {% if header in cats %}
+                    <div class="form-check">
+                        <input class="cat-input form-check-input" type="checkbox" value="" id="checkbox_{{ cat_i.value }}" cat_i={{ cat_i.value }} col_i={{ loop.index0 }} checked>
+                        <label class="form-check-label" for="checkbox_{{ cat_i }}">{{ header }}</label>
+                    </div>
+                    {% set cat_i.value = cat_i.value + 1 %}
+                {% endif %}
+            {% endfor %}
+            </div>
+            <div id="reloadDataContainer">
+                <button id="reloadDataButton" class="btn btn-primary">Reload Data</button>
+            </div>
+        </div>
+
+        <div id="tableContainer">
+        {% for records_table in records_tables %}
+            {% set table_name = names_tables[loop.index0] %}
+            <table id="table_{{ table_name }}" class="table table-hover nowrap">
+                <caption>{{ table_name }}</caption>
+                <thead>
+                    <tr>
+                    {% for header in headers %}
+                        <td>{{ header }}</td>
+                    {% endfor %}
+                    </tr>
+                </thead>
+            </table>
+        {% endfor %}
+        </div>
+    </div>
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/datatable.js"></script>
+    <script>
+        var names_tables = {{ names_tables|tojson }};
+        var headers = {{ headers|safe }};
+        var columns = {{ columns|safe }};
+        var records_tables = {{ records_tables|tojson }};
+        var grades_tables = {{ grades_tables|tojson }};
+        initVars(names_tables, headers, columns, records_tables, grades_tables);
+    </script>
+</body>
+</html>
