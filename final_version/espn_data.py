@@ -7,6 +7,21 @@ import pandas as pd
 import json
 import os
 
+def get_season_data(season_id) -> tuple:
+    data_dir = 'data'
+    records_json = os.path.join(data_dir, season_id, 'records.json')
+    zscores_json = os.path.join(data_dir, season_id, 'zscores.json')
+    grades_json = os.path.join(data_dir, season_id, 'grades.json')
+    
+    with open(records_json, 'r') as f:
+        records = json.load(f)
+    with open(zscores_json, 'r') as f:
+        zscores = json.load(f)
+    with open(grades_json, 'r') as f:
+        grades = json.load(f)
+
+    return records, zscores, grades
+
 def get_data() -> tuple:
     data_dir = 'data'
     season_dirs = os.listdir(data_dir)
@@ -43,7 +58,7 @@ class EspnData:
         )
 
         self.stats = ['GP', 'MPG', 'PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FGM', 'FGA', 'FG%', 'FTM', 'FTA', 'FT%', '3PTM', '3PTA', '3PT%']
-        self.cats = ['PTS', 'BLK', 'STL', 'AST', 'REB', 'TO', 'FG%', 'FT%', '3PTM']
+        self.cats = ['PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FG%', 'FT%', '3PTM']
 
         # XXYYYY: XX = full/proj, YYYY = year
         self.season_years = ['2021', '2022']
@@ -52,6 +67,9 @@ class EspnData:
         self.stats_views = ['avg', 'total']
 
         self.season_tables: List[SeasonTable] = []
+
+    def get_season_ids(self):
+        return [season_table.get_season_id() for season_table in self.season_tables]
 
     def calculate_total_zscores(self, cats: List[str]) -> None:
         for season_table in self.season_tables:
@@ -110,3 +128,4 @@ class EspnData:
 
 if __name__ == "__main__":
     espnData = EspnData()
+    get_data()

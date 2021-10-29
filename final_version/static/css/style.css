@@ -121,15 +121,6 @@
     font-size: small;
 }
 
-/* datatables */
-.dataTables_wrapper {
-    display: none;
-}
-
-#table_2022_curr_avg_wrapper {
-    display: block;
-}
-
 /* bootstrap modifications */
 .bootstrap-select {
     max-width: 200px;

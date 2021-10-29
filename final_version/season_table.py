@@ -110,9 +110,10 @@ class SeasonTable:
 
         rank = self.zscores_df['Z'].rank(ascending=False)
 
-        self.zscores_df.drop(columns=['R'], errors='ignore', inplace=True)
-        self.grades_df.drop(columns=['R'], errors='ignore', inplace=True)
-        self.records_df.drop(columns=['R'], errors='ignore', inplace=True)
+        if 'R' in self.records_df.columns:
+            self.zscores_df.drop(columns=['R'], inplace=True)
+            self.grades_df.drop(columns=['R'], inplace=True)
+            self.records_df.drop(columns=['R'], inplace=True)
 
         self.zscores_df.insert(0, 'R', rank)
         self.grades_df.insert(0, 'R', rank)

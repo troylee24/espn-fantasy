@@ -1,13 +1,21 @@
 $(document).ready(function() {
+    let reloaded = JSON.parse(sessionStorage.getItem("reloaded")) || false;
     let checkbox_states = JSON.parse(sessionStorage.getItem("checkbox_states")) || {};
-    $.each(checkbox_states, function(key, value) {
-        $("#" + key).prop('checked', value);
-    });
+    if (reloaded){
+        $.each(checkbox_states, function(key, value) {
+            $("#" + key).prop('checked', value);
+        });
+    }
+    else {
+        $.each(checkbox_states, function(key, value) {
+            $("#" + key).prop('checked', true);
+        });
+    }
+    sessionStorage.setItem("reloaded", false);
 
     $("#reloadDataButton").on('click', function(e) {
         $("#loader").show()
         e.preventDefault();
-        let visible_table = $.fn.dataTable.tables({visible: true, api: true});
         let checked_cats = []
 
         $.each($(".cat-input"), function(){
@@ -18,8 +26,8 @@ $(document).ready(function() {
             checkbox_states[$(this).attr('id')] = checked;
             if (checked) { checked_cats.push(cat_i); }
             
-            let column = visible_table.column(col_i);
-            column.visible(checked);
+            $(table_id).DataTable().column(col_i)
+                .visible(checked);
         });
         sessionStorage.setItem("checkbox_states", JSON.stringify(checkbox_states));
 
@@ -31,7 +39,8 @@ $(document).ready(function() {
             dataType: 'json',
             data: js_data
         }).done(function() {
-            location.reload()
+            sessionStorage.setItem("reloaded", JSON.stringify(true))
+            window.location.reload()
         });
     });
 

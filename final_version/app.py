@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
-from espn_data import EspnData, get_data
+from flask.helpers import url_for
+from espn_data import EspnData, get_season_data
 
 app = Flask(__name__)
 
@@ -15,13 +16,25 @@ def reload_data():
         espnData.calculate_total_zscores(data)
     return ('', 204)
 
-@app.route('/')
+@app.route('/tables')
 def index():
-    names_tables, records_tables, zscores_tables, grades_tables = get_data()
-    headers = list(records_tables[0][0].keys())
+    response = "<h1>List of Season Table Routes</h1>\n"
+    season_ids = espnData.get_season_ids()
+    for season_id in season_ids:
+        response += "<li><a href={}>{}</a></li>\n".format(url_for('tables', season_id=season_id), season_id)
+    return response
+
+@app.route('/tables/<string:season_id>')
+def tables(season_id):
+    records, zscores, grades = get_season_data(season_id)
+    headers = list(records[0].keys())
     columns = [{'data': header} for header in headers]
-    
-    return render_template('index.html', names_tables=names_tables, headers=headers, columns=columns, records_tables=records_tables, zscores_tables=zscores_tables, grades_tables=grades_tables, cats=cats)
+    cats_index = { cat: headers.index(cat) for cat in cats }
+
+    return render_template('tables.html',
+        season_id=season_id, records=records, zscores=zscores, grades=grades,
+        headers=headers, columns=columns, cats=cats, cats_index=cats_index
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)

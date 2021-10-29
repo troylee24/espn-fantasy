@@ -23,21 +23,17 @@
     
     <div id="content-grid">
         <div id="header">
-            <img src="static/imgs/espn-fantasy-icon.png">
+            <img src="/static/imgs/espn-fantasy-icon.png">
             <h1>Fantasy Basketball League Analyzer</h1>
         </div>
         
         <div id="catsInputContainer">
             <div id="formContainer">
-            {% set cat_i = namespace(value=0) %}
-            {% for header in headers %}
-                {% if header in cats %}
-                    <div class="form-check">
-                        <input class="cat-input form-check-input" type="checkbox" value="" id="checkbox_{{ cat_i.value }}" cat_i={{ cat_i.value }} col_i={{ loop.index0 }} checked>
-                        <label class="form-check-label" for="checkbox_{{ cat_i }}">{{ header }}</label>
-                    </div>
-                    {% set cat_i.value = cat_i.value + 1 %}
-                {% endif %}
+            {% for cat in cats %}
+                <div class="form-check">
+                    <input class="form-check-input cat-input" type="checkbox" value="" id="checkbox_{{ loop.index0 }}" cat_i={{ loop.index0 }} col_i={{ cats_index[cat] }} checked>
+                    <label class="form-check-label" for="checkbox_{{ loop.index0 }}">{{ cat }}</label>
+                </div>
             {% endfor %}
             </div>
             <div id="reloadDataContainer">
@@ -46,10 +42,8 @@
         </div>
 
         <div id="tableContainer">
-        {% for records_table in records_tables %}
-            {% set table_name = names_tables[loop.index0] %}
-            <table id="table_{{ table_name }}" class="table table-hover nowrap">
-                <caption>{{ table_name }}</caption>
+            <h1>{{ season_id }}</h1>
+            <table id="table_{{ season_id }}" class="table table-hover nowrap">
                 <thead>
                     <tr>
                     {% for header in headers %}
@@ -58,18 +52,20 @@
                     </tr>
                 </thead>
             </table>
-        {% endfor %}
         </div>
     </div>
-    <script src="/static/js/app.js"></script>
-    <script src="/static/js/datatable.js"></script>
+
     <script>
-        var names_tables = {{ names_tables|tojson }};
-        var headers = {{ headers|safe }};
-        var columns = {{ columns|safe }};
-        var records_tables = {{ records_tables|tojson }};
-        var grades_tables = {{ grades_tables|tojson }};
-        initVars(names_tables, headers, columns, records_tables, grades_tables);
+        var season_id = {{ season_id|tojson }};
+        var records = {{ records|tojson }};
+        var zscores = {{ zscores|tojson }};
+        var grades = {{ grades|tojson }};
+        var headers = {{ headers|tojson }};
+        var columns = {{ columns|tojson }};
+
+        var table_id = "#table_" + season_id;
     </script>
+    <script src="/static/js/datatable.js"></script>
+    <script src="/static/js/app.js"></script>
 </body>
 </html>
