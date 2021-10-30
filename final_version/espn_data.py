@@ -8,7 +8,7 @@ import json
 import os
 
 def get_season_data(season_id) -> tuple:
-    data_dir = 'data'
+    data_dir = os.path.join('static', 'data')
     records_json = os.path.join(data_dir, season_id, 'records.json')
     zscores_json = os.path.join(data_dir, season_id, 'zscores.json')
     grades_json = os.path.join(data_dir, season_id, 'grades.json')
@@ -21,32 +21,6 @@ def get_season_data(season_id) -> tuple:
         grades = json.load(f)
 
     return records, zscores, grades
-
-def get_data() -> tuple:
-    data_dir = 'data'
-    season_dirs = os.listdir(data_dir)
-    n = len(season_dirs)
-    names_tables = [str()] * n
-    records_tables = [list()] * n
-    zscores_tables = [list()] * n
-    grades_tables = [list()] * n
-
-    for i in range(n):
-        season_dir = season_dirs[i]
-        names_tables[i] = season_dir
-
-        records_json = os.path.join(data_dir, season_dir, 'records.json')
-        zscores_json = os.path.join(data_dir, season_dir, 'zscores.json')
-        grades_json = os.path.join(data_dir, season_dir, 'grades.json')
-
-        with open(records_json, 'r') as f:
-            records_tables[i] = json.load(f)
-        with open(zscores_json, 'r') as f:
-            zscores_tables[i] = json.load(f)
-        with open(grades_json, 'r') as f:
-            grades_tables[i] = json.load(f)
-    
-    return names_tables, records_tables, zscores_tables, grades_tables
 
 class EspnData:
     def __init__(self) -> None:
@@ -128,4 +102,4 @@ class EspnData:
 
 if __name__ == "__main__":
     espnData = EspnData()
-    get_data()
+    espnData.create_season_tables()

@@ -13,11 +13,12 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
 });
 
 $(document).ready(function() {
+    // DATATABLE INITIIALIZATION
     let table = $(table_id).DataTable({
-        "stateSave": true,
-        "stateDuration": -1,
-        "visible": false,
-        "data": records,
+        "ajax": {
+            "url": ajax_data,
+            "dataSrc": ''
+        },
         "columns": columns,
         "language": { "search": "Search Players:" },
         "scrollX": true,
@@ -49,25 +50,29 @@ $(document).ready(function() {
             },
             {
                 "targets": [2],
-                "width": "189px"
+                "width": "8%"
             },
             {
-                "targets": [0, 1],
-                "width": "auto"
+                "targets": [1],
+                "width": "0%"
+            },
+            {
+                "targets": [0],
+                "width": "2%"
             },
             {
                 "targets": "_all",
-                "width": "32px"
+                "width": "4.5%"
             },
             {
                 "targets": "_all",
-                "createdCell": function (td, cellData, rowData, row, col) {
+                "createdCell": function (td, _cellData, _rowData, row, col) {
                     let key = headers[col]
                     let color = grades[row][key]
                     $(td).css('background-color', color)
                 }
             }
-        ]
+        ],
     });
 
     let search_bar_name = table_id + "_filter input";
@@ -76,4 +81,35 @@ $(document).ready(function() {
         .on('keyup', function() {
             table.column(2).search(this.value).draw();
         });
+
+    // FILTERING CATEGORIES
+    $("#showCategoriesButton").on('click', function() {
+        $("#showCategoriesButton").prop("disabled", true);
+        let checked_cats = []
+
+        $.each($(".cat-input"), function(){
+            let checked = $(this).is(":checked");
+            let col_i = $(this).attr('col_i');
+            let cat_i = $(this).attr('cat_i');
+
+            if (checked) {
+                checked_cats.push(cat_i);
+            }
+            table.column(col_i).visible(checked, false);
+        });
+        table.columns.adjust().draw('page');
+
+        let checked_cats_data = JSON.stringify(checked_cats);
+        $.ajax({
+            url: '/show_categories',
+            type: 'post',
+            contentType: 'application/json',
+            dataType: 'json',
+            data: checked_cats_data,
+        }).done(function() {
+            table.ajax.reload( function() {
+                $("#showCategoriesButton").prop("disabled", false);
+            });
+        });
+    });
 });

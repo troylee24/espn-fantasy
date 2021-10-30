@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>{{ season_id }}</title>
 
     <!-- Datatables + Bootstrap5 + jQuery3 -->
     <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css"/>
@@ -19,8 +19,10 @@
     <link rel="stylesheet" href="/static/css/style.css">   
 </head>
 <body>
-    <div id="loader"></div>
-    
+    <div id="loader">
+        <div id="spinner"></div>
+    </div>
+
     <div id="content-grid">
         <div id="header">
             <img src="/static/imgs/espn-fantasy-icon.png">
@@ -36,8 +38,8 @@
                 </div>
             {% endfor %}
             </div>
-            <div id="reloadDataContainer">
-                <button id="reloadDataButton" class="btn btn-primary">Reload Data</button>
+            <div id="showCategoriesContainer">
+                <button id="showCategoriesButton" class="btn btn-primary">Show Categories</button>
             </div>
         </div>
 
@@ -63,9 +65,9 @@
         var headers = {{ headers|tojson }};
         var columns = {{ columns|tojson }};
 
+        var ajax_data = "/static/data/" + season_id + "/records.json";
         var table_id = "#table_" + season_id;
     </script>
     <script src="/static/js/datatable.js"></script>
-    <script src="/static/js/app.js"></script>
 </body>
 </html>

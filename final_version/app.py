@@ -8,14 +8,15 @@ espnData = EspnData()
 espnData.create_season_tables()
 cats = espnData.cats
 
-@app.route('/reload_data', methods=["POST"])
-def reload_data():
+@app.route('/show_categories', methods=["POST"])
+def show_categories():
     if request.method == 'POST':
         data = request.json
         data = [cats[int(cat)] for cat in data]
         espnData.calculate_total_zscores(data)
     return ('', 204)
 
+@app.route('/')
 @app.route('/tables')
 def index():
     response = "<h1>List of Season Table Routes</h1>\n"

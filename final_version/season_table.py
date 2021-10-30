@@ -24,15 +24,16 @@ class SeasonTable:
         return "{}_{}_{}".format(self.season_year, self.season_view, self.stats_view)
 
     def to_json(self) -> None:
-        if not os.path.exists('data'):
-            os.mkdir('data')
-        data_dir = "data/{}".format(self.get_season_id())
+        data_dir = os.path.join('static', 'data')
         if not os.path.exists(data_dir):
             os.mkdir(data_dir)
+        season_dir = os.path.join(data_dir, self.get_season_id())
+        if not os.path.exists(season_dir):
+            os.mkdir(season_dir)
 
-        records_file = os.path.join(data_dir, 'records.json')
-        zscores_file = os.path.join(data_dir, 'zscores.json')
-        grades_file = os.path.join(data_dir, 'grades.json')
+        records_file = os.path.join(season_dir, 'records.json')
+        zscores_file = os.path.join(season_dir, 'zscores.json')
+        grades_file = os.path.join(season_dir, 'grades.json')
         
         self.records_df.to_json(records_file, orient='records')
         self.zscores_df.to_json(zscores_file, orient='records')
