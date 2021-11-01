@@ -13,6 +13,17 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
 });
 
 $(document).ready(function() {
+    // function colWidth() {
+    //     var num_visible = table.columns(':visible').count();
+    //     var width = Math.floor((100 / num_visible));
+    //     $(table.columns().header()).css('width', width + '%');
+    //     table.columns.adjust().draw('page');
+    // }
+
+    // $(window).on('resize', function() {
+    //     colWidth();
+    // });
+
     // DATATABLE INITIIALIZATION
     let table = $(table_id).DataTable({
         "ajax": {
@@ -22,6 +33,7 @@ $(document).ready(function() {
         "columns": columns,
         "language": { "search": "Search Players:" },
         "scrollX": true,
+        // "autoWidth": false,
         "pageLength": 10,
         "lengthMenu": [
             [10, 25, 50, -1],
@@ -73,6 +85,9 @@ $(document).ready(function() {
                 }
             }
         ],
+        "initComplete": function() {
+            colWidth();
+        }
     });
 
     let search_bar_name = table_id + "_filter input";
@@ -98,15 +113,21 @@ $(document).ready(function() {
             table.column(col_i).visible(checked, false);
         });
         table.columns.adjust().draw('page');
+        // colWidth();
 
-        let checked_cats_data = JSON.stringify(checked_cats);
+        data = {};
+        data["season_id"] = season_id;
+        data["checked_cats"] = checked_cats;
+        dataJSON = JSON.stringify(data);
+
         $.ajax({
             url: '/show_categories',
-            type: 'post',
+            type: 'POST',
             contentType: 'application/json',
             dataType: 'json',
-            data: checked_cats_data,
-        }).done(function() {
+            data: dataJSON
+        }).done(function(data) {
+            grades = data;
             table.ajax.reload( function() {
                 $("#showCategoriesButton").prop("disabled", false);
             });

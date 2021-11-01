@@ -7,6 +7,14 @@ import pandas as pd
 import json
 import os
 
+def get_grades(season_id) -> list:
+    data_dir = os.path.join('static', 'data')
+    grades_json = os.path.join(data_dir, season_id, 'grades.json')
+    with open(grades_json, 'r') as f:
+        grades = json.load(f)
+
+    return grades
+
 def get_season_data(season_id) -> tuple:
     data_dir = os.path.join('static', 'data')
     records_json = os.path.join(data_dir, season_id, 'records.json')
@@ -31,7 +39,6 @@ class EspnData:
             swid='{7FE52982-0E42-4123-A529-820E42E1232D}'
         )
 
-        self.stats = ['GP', 'MPG', 'PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FGM', 'FGA', 'FG%', 'FTM', 'FTA', 'FT%', '3PTM', '3PTA', '3PT%']
         self.cats = ['PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FG%', 'FT%', '3PTM']
 
         # XXYYYY: XX = full/proj, YYYY = year
@@ -74,15 +81,16 @@ class EspnData:
 
                         for stats_view in self.stats_views:
                             player_stats = {}
+                            stats = ['GP', 'MPG', 'PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FGM', 'FGA', 'FG%', 'FTM', 'FTA', 'FT%', '3PTM', '3PTA', '3PT%']
                             try:
                                 player_stats_data: dict = player_full_stats[season][stats_view]
-                                for stat in self.stats:
+                                for stat in stats:
                                     try:
                                         player_stats[stat] = round(player_stats_data[stat], 2)
                                     except KeyError:
                                         player_stats[stat] = 0.0
                             except KeyError:                                
-                                for stat in self.stats:
+                                for stat in stats:
                                     player_stats[stat] = None
 
                             player_record = {}
