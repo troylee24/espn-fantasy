@@ -1,5 +1,5 @@
 from typing import List
-from espn_api.basketball import League
+from espn_api.basketball import League, Team, Player
 from collections import defaultdict
 from season_table import SeasonTable
 
@@ -15,21 +15,6 @@ def get_grades(season_id) -> list:
 
     return grades
 
-def get_season_data(season_id) -> tuple:
-    data_dir = os.path.join('static', 'data')
-    records_json = os.path.join(data_dir, season_id, 'records.json')
-    zscores_json = os.path.join(data_dir, season_id, 'zscores.json')
-    grades_json = os.path.join(data_dir, season_id, 'grades.json')
-    
-    with open(records_json, 'r') as f:
-        records = json.load(f)
-    with open(zscores_json, 'r') as f:
-        zscores = json.load(f)
-    with open(grades_json, 'r') as f:
-        grades = json.load(f)
-
-    return records, zscores, grades
-
 class EspnData:
     def __init__(self) -> None:
         self.league = League(
@@ -39,6 +24,8 @@ class EspnData:
             swid='{7FE52982-0E42-4123-A529-820E42E1232D}'
         )
 
+        # !if the data changes order, self.headers will no longer be correct
+        self.headers = ['R', 'Fantasy Team', 'Name', 'Pos', 'Team', 'GP', 'MPG', 'PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FGM', 'FGA', 'FG%', 'FTM', 'FTA', 'FT%', '3PTM', '3PTA', '3PT%', 'Z']
         self.cats = ['PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FG%', 'FT%', '3PTM']
 
         # XXYYYY: XX = full/proj, YYYY = year
@@ -47,23 +34,26 @@ class EspnData:
         self.season_view_nums = {'curr': '00', 'proj': '10'} 
         self.stats_views = ['avg', 'total']
 
-        self.season_tables: List[SeasonTable] = []
+        self.data_dir = os.path.join('static', 'data', 'data.json')
+        self.season_tables: dict[str, SeasonTable] = {}
+
+        self.create_season_tables()
 
     def get_season_ids(self):
-        return [season_table.get_season_id() for season_table in self.season_tables]
+        return self.season_tables.keys()
 
-    def calculate_total_zscores(self, cats: List[str]) -> None:
-        for season_table in self.season_tables:
-            season_table.calculate_total_zscores(cats)
-            season_table.to_json()
+    def calculate_total_zscores(self, season_id: str, cats: List[str]) -> None:
+        self.season_tables[season_id].calculate_total_zscores(cats)
+        self.season_tables[season_id].to_json()
 
     def create_season_tables(self) -> None:
-        self.season_tables = []
         records_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
 
+        team: Team = None
         for team in self.league.teams:
             team_name = " ".join(team.team_name.split())
             
+            player: Player = None
             for player in team.roster:
                 player_vars: dict = vars(player)
 
@@ -99,15 +89,15 @@ class EspnData:
                             player_record.update(player_stats)
                             
                             records_dict[season_year][season_view][stats_view].append(player_record)
-        
+
         for season_year in self.season_years:
             for season_view in self.season_views:
                 for stats_view in self.stats_views:
                     records = records_dict[season_year][season_view][stats_view]
                     records_df = pd.DataFrame(records)
                     season_table = SeasonTable(season_year, season_view, stats_view, records_df, self.cats)
-                    self.season_tables.append(season_table)
+                    season_id = season_table.get_season_id()
+                    self.season_tables[season_id] = season_table
 
 if __name__ == "__main__":
     espnData = EspnData()
-    espnData.create_season_tables()

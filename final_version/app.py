@@ -1,21 +1,21 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request
 from flask.helpers import url_for
-from espn_data import EspnData, get_grades
+from espn_data import EspnData
 
 app = Flask(__name__)
 
 espnData = EspnData()
-espnData.create_season_tables()
-cats = espnData.cats
 
 @app.route('/show_categories', methods=["POST"])
 def show_categories():
     if request.method == 'POST':
         season_id = request.json['season_id']
         checked_cats = request.json['checked_cats']
-        data = [cats[int(cat)] for cat in checked_cats]
-        espnData.calculate_total_zscores(data)
-        return jsonify(get_grades(season_id))
+        cats = espnData.cats
+        
+        cats = [cats[int(cat)] for cat in checked_cats]
+        espnData.calculate_total_zscores(season_id, cats)
+    return ('', 204)
 
 @app.route('/')
 @app.route('/tables')
@@ -28,13 +28,13 @@ def index():
 
 @app.route('/tables/<string:season_id>')
 def tables(season_id):
-    grades = get_grades(season_id)
-    headers = list(grades[0].keys())
+    headers = espnData.headers
+    cats = espnData.cats
     columns = [{'data': header} for header in headers]
     cats_index = { cat: headers.index(cat) for cat in cats }
 
     return render_template('tables.html',
-        season_id=season_id, grades=grades,
+        season_id=season_id,
         headers=headers, columns=columns,
         cats=cats, cats_index=cats_index
     )

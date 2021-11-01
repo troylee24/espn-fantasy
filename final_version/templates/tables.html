@@ -59,12 +59,20 @@
 
     <script>
         var season_id = {{ season_id|tojson }};
-        var grades = {{ grades|tojson }};
         var headers = {{ headers|tojson }};
         var columns = {{ columns|tojson }};
 
-        var ajax_data = "/static/data/" + season_id + "/records.json";
         var table_id = "#table_" + season_id;
+        var records_json = "/static/data/" + season_id + "/records.json";
+        var grades_json = "/static/data/" + season_id + "/grades.json";
+        
+        var grades;
+        $.ajax({
+            url: grades_json,
+            dataType: "json",
+        }).done(function(data) {
+            grades = data;
+        });
     </script>
     <script src="/static/js/datatable.js"></script>
 </body>

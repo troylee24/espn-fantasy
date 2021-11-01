@@ -22,7 +22,7 @@ class SeasonTable:
 
     def get_season_id(self) -> str:
         return "{}_{}_{}".format(self.season_year, self.season_view, self.stats_view)
-
+    
     def to_json(self) -> None:
         data_dir = os.path.join('static', 'data')
         if not os.path.exists(data_dir):
@@ -38,15 +38,6 @@ class SeasonTable:
         self.records_df.to_json(records_file, orient='records')
         self.zscores_df.to_json(zscores_file, orient='records')
         self.grades_df.to_json(grades_file, orient='records')
-    
-    def records_to_dict(self):
-        return self.records_df.to_dict(orient='records')
-    
-    def zscores_to_dict(self):
-        return self.zscores_df.to_dict(orient='records')
-
-    def grades_to_dict(self):
-        return self.grades_df.to_dict(orient='records')
 
     ####################################
     ### ZSCORE AND GRADING FUNCTIONS ###
@@ -91,6 +82,10 @@ class SeasonTable:
         r, g, b = (int(x*end[i] + (1-x)*start[i]) for i in range(3))
         hex = '#%02x%02x%02x' % (clamp(r), clamp(g), clamp(b))
         return hex
+
+    ###########################
+    ### CREATING DATAFRAMES ###
+    ###########################
 
     def calculate_zscores(self) -> None:
         self.zscores_df = self.records_df.copy()

@@ -13,27 +13,15 @@ jQuery.extend( jQuery.fn.dataTableExt.oSort, {
 });
 
 $(document).ready(function() {
-    // function colWidth() {
-    //     var num_visible = table.columns(':visible').count();
-    //     var width = Math.floor((100 / num_visible));
-    //     $(table.columns().header()).css('width', width + '%');
-    //     table.columns.adjust().draw('page');
-    // }
-
-    // $(window).on('resize', function() {
-    //     colWidth();
-    // });
-
     // DATATABLE INITIIALIZATION
     let table = $(table_id).DataTable({
         "ajax": {
-            "url": ajax_data,
-            "dataSrc": ''
+            "url": records_json,
+            "dataSrc": ""
         },
         "columns": columns,
         "language": { "search": "Search Players:" },
         "scrollX": true,
-        // "autoWidth": false,
         "pageLength": 10,
         "lengthMenu": [
             [10, 25, 50, -1],
@@ -61,22 +49,6 @@ $(document).ready(function() {
                 "orderSequence": ["desc", "asc"], 
             },
             {
-                "targets": [2],
-                "width": "8%"
-            },
-            {
-                "targets": [1],
-                "width": "0%"
-            },
-            {
-                "targets": [0],
-                "width": "2%"
-            },
-            {
-                "targets": "_all",
-                "width": "4.5%"
-            },
-            {
                 "targets": "_all",
                 "createdCell": function (td, _cellData, _rowData, row, col) {
                     let key = headers[col]
@@ -85,9 +57,6 @@ $(document).ready(function() {
                 }
             }
         ],
-        "initComplete": function() {
-            colWidth();
-        }
     });
 
     let search_bar_name = table_id + "_filter input";
@@ -99,7 +68,7 @@ $(document).ready(function() {
 
     // FILTERING CATEGORIES
     $("#showCategoriesButton").on('click', function() {
-        $("#showCategoriesButton").prop("disabled", true);
+        $(this).prop("disabled", true);
         let checked_cats = []
 
         $.each($(".cat-input"), function(){
@@ -113,7 +82,6 @@ $(document).ready(function() {
             table.column(col_i).visible(checked, false);
         });
         table.columns.adjust().draw('page');
-        // colWidth();
 
         data = {};
         data["season_id"] = season_id;
@@ -126,10 +94,15 @@ $(document).ready(function() {
             contentType: 'application/json',
             dataType: 'json',
             data: dataJSON
-        }).done(function(data) {
-            grades = data;
-            table.ajax.reload( function() {
-                $("#showCategoriesButton").prop("disabled", false);
+        }).done(function() {
+            $.ajax({
+                url: grades_json,
+                dataType: "json",
+            }).done(function(data) {
+                grades = data;
+                table.ajax.reload( function() {
+                    $("#showCategoriesButton").prop("disabled", false);
+                });
             });
         });
     });
