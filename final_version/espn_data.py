@@ -1,19 +1,12 @@
-from typing import List
+from typing import List, Tuple
 from espn_api.basketball import League, Team, Player
 from collections import defaultdict
 from season_table import SeasonTable
+from team_table import TeamTable
 
 import pandas as pd
 import json
 import os
-
-def get_grades(season_id) -> list:
-    data_dir = os.path.join('static', 'data')
-    grades_json = os.path.join(data_dir, season_id, 'grades.json')
-    with open(grades_json, 'r') as f:
-        grades = json.load(f)
-
-    return grades
 
 class EspnData:
     def __init__(self) -> None:
@@ -24,8 +17,6 @@ class EspnData:
             swid='{7FE52982-0E42-4123-A529-820E42E1232D}'
         )
 
-        # !if the data changes order, self.headers will no longer be correct
-        self.headers = ['R', 'Fantasy Team', 'Name', 'Pos', 'Team', 'GP', 'MPG', 'PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FGM', 'FGA', 'FG%', 'FTM', 'FTA', 'FT%', '3PTM', '3PTA', '3PT%', 'Z']
         self.cats = ['PTS', 'AST', 'REB', 'STL', 'BLK', 'TO', 'FG%', 'FT%', '3PTM']
 
         # XXYYYY: XX = full/proj, YYYY = year
@@ -34,10 +25,16 @@ class EspnData:
         self.season_view_nums = {'curr': '00', 'proj': '10'} 
         self.stats_views = ['avg', 'total']
 
-        self.data_dir = os.path.join('static', 'data', 'data.json')
+        self.team_table: TeamTable = None
         self.season_tables: dict[str, SeasonTable] = {}
 
         self.create_season_tables()
+
+    def get_season_table_headers(self) -> List[str]:
+        return list(self.season_tables.values())[0].get_headers()
+
+    def get_team_table_headers(self) -> Tuple[List[str], List[str]]:
+        return self.team_table.get_headers()
 
     def get_season_ids(self):
         return self.season_tables.keys()
@@ -47,11 +44,17 @@ class EspnData:
         self.season_tables[season_id].to_json()
 
     def create_season_tables(self) -> None:
-        records_dict = defaultdict(lambda: defaultdict(lambda: defaultdict(list)))
+        team_list = []
+        records_dict = defaultdict(list)
 
         team: Team = None
         for team in self.league.teams:
             team_name = " ".join(team.team_name.split())
+            team_dict = {}
+            team_dict['Fantasy Team'] = team_name
+            for cat in self.cats:
+                team_dict[cat] = round(team.stats[cat], 2)
+            team_list.append(team_dict)
             
             player: Player = None
             for player in team.roster:
@@ -88,16 +91,16 @@ class EspnData:
                             player_record.update(player_info)
                             player_record.update(player_stats)
                             
-                            records_dict[season_year][season_view][stats_view].append(player_record)
+                            season_id = "_".join((season_year, season_view, stats_view))
+                            records_dict[season_id].append(player_record)
 
-        for season_year in self.season_years:
-            for season_view in self.season_views:
-                for stats_view in self.stats_views:
-                    records = records_dict[season_year][season_view][stats_view]
-                    records_df = pd.DataFrame(records)
-                    season_table = SeasonTable(season_year, season_view, stats_view, records_df, self.cats)
-                    season_id = season_table.get_season_id()
-                    self.season_tables[season_id] = season_table
+        team_df = pd.DataFrame(team_list)
+        self.team_table = TeamTable(team_df)
+
+        for season_id, records in records_dict.items():
+            records_df = pd.DataFrame(records)
+            season_table = SeasonTable(season_id, records_df, self.cats)
+            self.season_tables[season_id] = season_table
 
 if __name__ == "__main__":
     espnData = EspnData()

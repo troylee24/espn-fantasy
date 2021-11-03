@@ -13,3 +13,13 @@ NEW WORKFLOW
 3. create_season_tables() -> populates self.season_tables with SeasonTable objects
 4. for each SeasonTable object -> __init__()
 5. seasonTable.calculate_zscores(), seasonTable.to_json()
+
+SEASONTABLE:
+- actual stats
+- zscore stats
+- grades
+
+TEAMTABLE:
+- actual stats
+- ranks ('TO' ascending)
+- grades

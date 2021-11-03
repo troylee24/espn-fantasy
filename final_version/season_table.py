@@ -1,33 +1,29 @@
-from typing import Dict, Tuple, List
+from typing import Tuple, List
 from pandas.core.frame import DataFrame
-from pandas.core.series import Series
+from zscore import zscore, impact, grade
 
 import os
 import numpy as np
-import math
 
 class SeasonTable:
-    def __init__(self, season_year: str, season_view: str, stats_view: str, records_df: DataFrame, cats: list) -> None:
-        self.season_year = season_year
-        self.season_view = season_view
-        self.stats_view = stats_view
+    def __init__(self, season_id: str, records_df: DataFrame, cats: list) -> None:
+        self.season_id = season_id
         self.cats = cats
 
         self.records_df = records_df
         self.zscores_df: DataFrame = None
         self.grades_df: DataFrame = None
         
+        self.data_dir = os.path.join('static', 'data', 'season')
+
         self.calculate_zscores()
         self.to_json()
 
-    def get_season_id(self) -> str:
-        return "{}_{}_{}".format(self.season_year, self.season_view, self.stats_view)
-    
+    def get_headers(self) -> List[str]:
+        return list(self.records_df.columns)
+
     def to_json(self) -> None:
-        data_dir = os.path.join('static', 'data')
-        if not os.path.exists(data_dir):
-            os.mkdir(data_dir)
-        season_dir = os.path.join(data_dir, self.get_season_id())
+        season_dir = os.path.join(self.data_dir, self.season_id)
         if not os.path.exists(season_dir):
             os.mkdir(season_dir)
 
@@ -39,78 +35,34 @@ class SeasonTable:
         self.zscores_df.to_json(zscores_file, orient='records')
         self.grades_df.to_json(grades_file, orient='records')
 
-    ####################################
-    ### ZSCORE AND GRADING FUNCTIONS ###
-    ####################################
-
-    def zscore(self, col_s: Series) -> Series:
-        """Calculates zscore based on a DataFrame column."""
-        return (col_s - col_s.mean()) / (col_s.std(ddof=0))
-
-    def zscore_percent(self, df: DataFrame, col: str) -> Series:
-        """Calculates zscore for percent stats based on attempted."""
-        # i.e. FG% -> FG -> FGA, FGM
-        base = col[:-1]
-        made, att = base + 'M', base + 'A'
-
-        # calculate impact
-        avg_p: Series = df[made].sum()/df[att].sum()
-        impact: Series = (df[col] - avg_p)*df[att]
-
-        # calculate zscores of impact
-        return self.zscore(impact)
-    
-    def grade(self, zscore) -> str:
-        """
-        Assigns a color based on a 3-point gradient of red-white-green
-        Returns 6-digit hexadecimal string based on zscore.
-        """
-        def clamp(x):
-            """Clamps rgb value to (0, 255)."""
-            return max(0, min(x, 255))
-        
-        red = (255, 0, 0)
-        white = (255, 255, 255)
-        green = (0, 255, 0)
-
-        if math.isnan(zscore):
-            return '#%02x%02x%02x' % white
-
-        start, end = white, red if zscore < 0 else green
-
-        x = abs(zscore)
-        r, g, b = (int(x*end[i] + (1-x)*start[i]) for i in range(3))
-        hex = '#%02x%02x%02x' % (clamp(r), clamp(g), clamp(b))
-        return hex
-
-    ###########################
-    ### CREATING DATAFRAMES ###
-    ###########################
-
     def calculate_zscores(self) -> None:
         self.zscores_df = self.records_df.copy()
         self.grades_df = self.records_df.copy()
-        numeric_cols = self.records_df.select_dtypes(include=[np.number])
         
+        numeric_cols = self.records_df.select_dtypes(include=[np.number]).columns
+        stat_percent_cols = [col for col in numeric_cols if '%' in col]
+
+        for col in stat_percent_cols:
+            self.zscores_df[col] = impact(self.zscores_df, col)
         for col in numeric_cols:
-            self.zscores_df[col] = self.zscore_percent(self.records_df, col) if '%' in col else self.zscore(self.records_df[col])
-            self.grades_df[col] = self.zscores_df[col].map(lambda z: self.grade(-z)) if col == 'TO' else self.zscores_df[col].map(lambda z: self.grade(z))
+            self.zscores_df[col] = zscore(self.zscores_df, col) if col != 'TO' else zscore(self.zscores_df, col) * -1
+            self.grades_df[col] = self.zscores_df[col].map(lambda z: grade(z))
+
+        # make space for rank column
+        self.zscores_df.insert(0, 'R', 0)
+        self.grades_df.insert(0, 'R', 0)
+        self.records_df.insert(0, 'R', 0)
 
         self.calculate_total_zscores(self.cats)
 
     def calculate_total_zscores(self, cats: List[str]) -> Tuple[DataFrame]:
         self.zscores_df['Z'] = self.zscores_df[cats].sum(axis=1, skipna=False)
-        self.zscores_df['Z'] = self.zscore(self.zscores_df['Z']).round(2)
-        self.grades_df['Z'] = self.zscores_df['Z'].map(lambda z: self.grade(z))
-        self.records_df['Z'] = self.zscores_df['Z'].values
+        self.zscores_df['Z'] = zscore(self.zscores_df, 'Z')
+        self.records_df['Z'] = self.zscores_df['Z']
+        self.zscores_df['Z'] = self.zscores_df['Z']
+        self.grades_df['Z'] = self.zscores_df['Z'].map(lambda z: grade(z))
 
         rank = self.zscores_df['Z'].rank(ascending=False)
-
-        if 'R' in self.records_df.columns:
-            self.zscores_df.drop(columns=['R'], inplace=True)
-            self.grades_df.drop(columns=['R'], inplace=True)
-            self.records_df.drop(columns=['R'], inplace=True)
-
-        self.zscores_df.insert(0, 'R', rank)
-        self.grades_df.insert(0, 'R', rank)
-        self.records_df.insert(0, 'R', rank)
+        self.zscores_df['R'] = rank
+        self.grades_df['R'] = rank
+        self.records_df['R'] = rank
