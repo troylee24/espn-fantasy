@@ -5,8 +5,6 @@ from season_table import SeasonTable
 from team_table import TeamTable
 
 import pandas as pd
-import json
-import os
 
 class EspnData:
     def __init__(self) -> None:

@@ -57,9 +57,8 @@ class SeasonTable:
 
     def calculate_total_zscores(self, cats: List[str]) -> Tuple[DataFrame]:
         self.zscores_df['Z'] = self.zscores_df[cats].sum(axis=1, skipna=False)
-        self.zscores_df['Z'] = zscore(self.zscores_df, 'Z')
         self.records_df['Z'] = self.zscores_df['Z']
-        self.zscores_df['Z'] = self.zscores_df['Z']
+        self.zscores_df['Z'] = zscore(self.zscores_df, 'Z')
         self.grades_df['Z'] = self.zscores_df['Z'].map(lambda z: grade(z))
 
         rank = self.zscores_df['Z'].rank(ascending=False)

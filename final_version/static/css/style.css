@@ -60,6 +60,14 @@ body {
     font-size: 14px;
 }
 
+.tab-pane {
+    padding-top: 20px;
+}
+
+.dataTables_scroll {
+    padding: 10px 0;
+}
+
 .table {
     table-layout: fixed;
     width: 100% !important;

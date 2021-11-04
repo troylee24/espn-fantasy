@@ -25,6 +25,7 @@ def index():
     for season_id in season_ids:
         response += "<li><a href={}>{}</a></li>\n".format(url_for('season_tables', season_id=season_id), season_id)
     response += "<li><a href={}>team</a></li>\n".format(url_for('team_table'))
+    response += "<li><a href={}>draft</a></li>\n".format(url_for('draft'))
     return response
 
 @app.route('/tables/season/<string:season_id>')
@@ -49,6 +50,19 @@ def team_table():
     return render_template('team_table.html',
         record_headers=record_headers, rank_headers=rank_headers,
         record_columns=record_columns, rank_columns=rank_columns
+    )
+
+@app.route('/tables/draft')
+def draft():
+    headers = espnData.get_season_table_headers()
+    columns = [{'data': header} for header in headers]
+    cats = espnData.cats
+    cats_index = { cat: headers.index(cat) for cat in cats }
+
+    return render_template('draft.html',
+        season_id="2022_curr_avg",
+        headers=headers, columns=columns,
+        cats=cats, cats_index=cats_index
     )
 
 if __name__ == "__main__":

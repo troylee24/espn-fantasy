@@ -46,8 +46,8 @@ class TeamTable:
         self.ranks_df['Total'] = self.ranks_df[numeric_cols].sum(axis=1, skipna=False)
 
         self.zscores_df['Z'] = self.zscores_df[numeric_cols].sum(axis=1, skipna=False)
-        self.zscores_df['Z'] = zscore(self.zscores_df, 'Z')
         self.records_df['Z'] = self.zscores_df['Z']
+        self.zscores_df['Z'] = zscore(self.zscores_df, 'Z')
         self.zscores_df['Z'] = self.zscores_df['Z']
         self.grades_df['Z'] = self.zscores_df['Z'].map(lambda z: grade(z))
 
