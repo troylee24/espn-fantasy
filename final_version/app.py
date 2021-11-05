@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from flask.helpers import url_for
 from espn_data import EspnData
 
@@ -6,39 +6,44 @@ app = Flask(__name__)
 
 espnData = EspnData()
 
-@app.route('/show_categories', methods=["POST"])
-def show_categories():
-    if request.method == 'POST':
-        season_id = request.json['season_id']
-        checked_cats = request.json['checked_cats']
-        cats = espnData.cats
-        
-        cats = [cats[int(cat)] for cat in checked_cats]
-        espnData.calculate_total_zscores(season_id, cats)
-    return ('', 204)
-
 @app.route('/')
 @app.route('/tables')
 def index():
     response = "<h1>List of Season Table Routes</h1>\n"
-    season_ids = espnData.get_season_ids()
-    for season_id in season_ids:
-        response += "<li><a href={}>{}</a></li>\n".format(url_for('season_tables', season_id=season_id), season_id)
+    response += "<li><a href={}>season</a></li>\n".format(url_for('season'))
     response += "<li><a href={}>team</a></li>\n".format(url_for('team_table'))
     response += "<li><a href={}>draft</a></li>\n".format(url_for('draft'))
     return response
 
-@app.route('/tables/season/<string:season_id>')
-def season_tables(season_id):
+@app.route('/load_season', methods=['POST'])
+def load_season():
+    if request.method == 'POST':
+        season_id = request.json['season_id']
+        cats = request.json['cats']
+        if cats:
+            espnData.calculate_total_zscores(season_id, cats)
+        records, zscores, grades = espnData.get_season_data(season_id)
+        return jsonify({
+            'records': records,
+            'zscores': zscores,
+            'grades': grades
+        })
+
+@app.route('/tables/season')
+def season():
+    season_ids = espnData.get_season_ids()
+    default_season = "2022_curr_avg"
+    fantasy_teams = espnData.get_fantasy_teams()
     headers = espnData.get_season_table_headers()
     columns = [{'data': header} for header in headers]
+    col_index = {header: i for i, header in enumerate(headers)}
     cats = espnData.cats
-    cats_index = { cat: headers.index(cat) for cat in cats }
 
-    return render_template('season_tables.html',
-        season_id=season_id,
+    return render_template('season.html',
+        season_ids=season_ids, default_season=default_season,
+        fantasy_teams=fantasy_teams,
         headers=headers, columns=columns,
-        cats=cats, cats_index=cats_index
+        col_index=col_index, cats=cats,
     )
 
 @app.route('/tables/team')

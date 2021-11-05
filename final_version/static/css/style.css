@@ -7,12 +7,16 @@ body {
     display: grid;
     grid-template-columns: 100%;
     row-gap: 20px;
-    margin: 20px 5%;
+    padding: 50px 5% 20px;
+}
+
+#content-grid > div {
+    box-shadow: 1px 1px 5px rgb(0 0 0 / 15%);
+    padding: 20px;
 }
 
 /* header */
 #header {
-    margin: 40px 0;
     width: 100%;
     height: 100px;
     display: flex;
@@ -21,29 +25,47 @@ body {
 }
 #header img {
     float: left;
-    width: 125px;
-    height: 125px;
+    width: 150px;
+    height: 150px;
     margin-right: 10px;
 } 
 #header h1 {
     position: relative;
 }
 
-/* catsInputContainer */
-#catsInputContainer {
-    border: 1px solid #000000;
+#filterContainer {
     display: grid;
-    justify-content: center;
-    grid-template-columns: 600px;
-    row-gap: 20px;
-    padding: 10px 0;
+    grid-template-columns: 1fr 1fr 1fr;
+    font-size: 12px;
+    font-style: italic;
 }
 
-/* formContainer */
-#formContainer {
+#filterContainer > div {
+    margin: auto;
+}
+
+.dropdown {
     display: grid;
-    justify-content: space-evenly;
-    grid-template-columns: auto auto auto auto auto;
+    row-gap: 3px;
+}
+
+.dropdown-toggle,
+.dropdown-menu {
+    width: 200px;
+}
+
+/* catsInputContainer */
+#catsInputContainer {
+    display: grid;
+    grid-template-columns: 200px;
+    row-gap: 20px;
+}
+
+#catsContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    column-gap: 5px;
+    row-gap: 5px;
 }
 
 /* showCategoriesContainer */
@@ -52,7 +74,7 @@ body {
     justify-content: center;
 }
 #showCategoriesButton {
-    width: 200px;
+    width: 100%;
 }
 
 #tableContainer {
@@ -71,6 +93,7 @@ body {
 .table {
     table-layout: fixed;
     width: 100% !important;
+    cursor: default;
 }
 
 .table thead {
@@ -88,22 +111,6 @@ body {
     content: "" !important;
 }
 
-/* bootstrap modifications */
-.bootstrap-select {
-    max-width: 200px;
-}
-.bootstrap-select .btn {
-    border-style: solid;
-    border-left-width: 3px;
-    border-top: none;
-    border-bottom: none;
-    border-right: none;
-    padding: 8px 8px;
-    font-size: 16px;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-}
 .btn,
 .form-check-input:focus,
 .bootstrap-select .btn:focus,
@@ -113,15 +120,7 @@ body {
     outline: none !important;
     box-shadow: none !important;
 }
-#filterContainer > div:nth-child(1) .bootstrap-select .btn {
-    border-left-color: #04b4ec;
-}
-#filterContainer > div:nth-child(2) .bootstrap-select .btn {
-    border-left-color: #05e3f4;
-}
-#filterContainer > div:nth-child(3) .bootstrap-select .btn {
-    border-left-color: #05f144;
-}
-#filterContainer > div:nth-child(4) .bootstrap-select .btn {
-    border-left-color: #ffaf00;
+
+.form-select:hover {
+    cursor: pointer;
 }

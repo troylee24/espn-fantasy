@@ -1,6 +1,8 @@
 from typing import List, Tuple
 from espn_api.basketball import League, Team, Player
 from collections import defaultdict
+
+from pandas.core.frame import DataFrame
 from season_table import SeasonTable
 from team_table import TeamTable
 
@@ -25,8 +27,15 @@ class EspnData:
 
         self.team_table: TeamTable = None
         self.season_tables: dict[str, SeasonTable] = {}
+        self.fantasy_teams: list[str] = []
 
         self.create_season_tables()
+
+    def get_fantasy_teams(self) -> List[str]:
+        return self.fantasy_teams
+
+    def get_season_data(self, season_id) -> Tuple[dict, dict, dict]:
+        return self.season_tables[season_id].get_data()
 
     def get_season_table_headers(self) -> List[str]:
         return list(self.season_tables.values())[0].get_headers()
@@ -48,6 +57,7 @@ class EspnData:
         team: Team = None
         for team in self.league.teams:
             team_name = " ".join(team.team_name.split())
+            self.fantasy_teams.append(team_name)
             team_dict = {}
             team_dict['Fantasy Team'] = team_name
             for cat in self.cats:

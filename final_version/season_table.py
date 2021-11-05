@@ -1,4 +1,5 @@
 from typing import Tuple, List
+from flask import json
 from pandas.core.frame import DataFrame
 from zscore import zscore, impact, grade
 
@@ -13,27 +14,37 @@ class SeasonTable:
         self.records_df = records_df
         self.zscores_df: DataFrame = None
         self.grades_df: DataFrame = None
-        
-        self.data_dir = os.path.join('static', 'data', 'season')
 
+        self.init_data()
         self.calculate_zscores()
         self.to_json()
+    
+    def init_data(self) -> None:
+        data_dir = os.path.join('static', 'data', 'season')
+        season_dir = os.path.join(data_dir, self.season_id)
+        if not os.path.exists(season_dir):
+            os.mkdir(season_dir)
+
+        self.records_file = os.path.join(season_dir, 'records.json')
+        self.zscores_file = os.path.join(season_dir, 'zscores.json')
+        self.grades_file = os.path.join(season_dir, 'grades.json')
 
     def get_headers(self) -> List[str]:
         return list(self.records_df.columns)
 
-    def to_json(self) -> None:
-        season_dir = os.path.join(self.data_dir, self.season_id)
-        if not os.path.exists(season_dir):
-            os.mkdir(season_dir)
+    def get_data(self) -> Tuple[dict, dict, dict]:
+        with open(self.records_file) as f:
+            records = json.load(f)
+        with open(self.zscores_file) as f:
+            zscores = json.load(f)
+        with open(self.grades_file) as f:
+            grades = json.load(f)
+        return records, zscores, grades
 
-        records_file = os.path.join(season_dir, 'records.json')
-        zscores_file = os.path.join(season_dir, 'zscores.json')
-        grades_file = os.path.join(season_dir, 'grades.json')
-        
-        self.records_df.to_json(records_file, orient='records')
-        self.zscores_df.to_json(zscores_file, orient='records')
-        self.grades_df.to_json(grades_file, orient='records')
+    def to_json(self) -> None:        
+        self.records_df.to_json(self.records_file, orient='records')
+        self.zscores_df.to_json(self.zscores_file, orient='records')
+        self.grades_df.to_json(self.grades_file, orient='records')    
 
     def calculate_zscores(self) -> None:
         self.zscores_df = self.records_df.copy()
@@ -57,7 +68,7 @@ class SeasonTable:
 
     def calculate_total_zscores(self, cats: List[str]) -> Tuple[DataFrame]:
         self.zscores_df['Z'] = self.zscores_df[cats].sum(axis=1, skipna=False)
-        self.records_df['Z'] = self.zscores_df['Z']
+        self.records_df['Z'] = np.trunc(100 * self.zscores_df['Z']) / 100
         self.zscores_df['Z'] = zscore(self.zscores_df, 'Z')
         self.grades_df['Z'] = self.zscores_df['Z'].map(lambda z: grade(z))
 
