@@ -39,16 +39,15 @@ class TeamTable:
         
         numeric_cols = self.records_df.select_dtypes(include=[np.number]).columns
         for col in numeric_cols:
-            self.zscores_df[col] = zscore(self.zscores_df, col) if col != 'TO' else zscore(self.zscores_df, col) * -1
+            self.zscores_df[col] = zscore(self.zscores_df[col]) if col != 'TO' else zscore(self.zscores_df[col]) * -1
             self.grades_df[col] = self.zscores_df[col].map(lambda z: grade(z))
             self.ranks_df[col] = self.zscores_df[col].rank(ascending=False)
 
         self.ranks_df['Total'] = self.ranks_df[numeric_cols].sum(axis=1, skipna=False)
 
-        self.zscores_df['Z'] = self.zscores_df[numeric_cols].sum(axis=1, skipna=False)
-        self.records_df['Z'] = self.zscores_df['Z']
-        self.zscores_df['Z'] = zscore(self.zscores_df, 'Z')
-        self.zscores_df['Z'] = self.zscores_df['Z']
+        z_col = self.zscores_df[numeric_cols].sum(axis=1, skipna=False)
+        self.records_df['Z'] = z_col
+        self.zscores_df['Z'] = zscore(z_col)
         self.grades_df['Z'] = self.zscores_df['Z'].map(lambda z: grade(z))
 
         rank = self.zscores_df['Z'].rank(ascending=False)

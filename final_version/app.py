@@ -20,8 +20,7 @@ def load_season():
     if request.method == 'POST':
         season_id = request.json['season_id']
         cats = request.json['cats']
-        if cats:
-            espnData.calculate_total_zscores(season_id, cats)
+        espnData.calculate_total_zscores(season_id, cats)
         records, zscores, grades = espnData.get_season_data(season_id)
         return jsonify({
             'records': records,

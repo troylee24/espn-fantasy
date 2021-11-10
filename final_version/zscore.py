@@ -7,10 +7,10 @@ from pandas.core.series import Series
 
 pd.options.mode.chained_assignment = None
 
-def zscore(df: DataFrame, col: Series) -> Series:
+def zscore(col: Series) -> Series:
     """Calculates zscore for column"""
-    zscore_col: Series = (df[col] - df[col].mean()) / (df[col].std(ddof=0))
-    return np.trunc(100 * zscore_col) / 100
+    zscore_col = (col - col.mean()) / (col.std(ddof=0))
+    return np.trunc(zscore_col * 100) / 100
 
 def impact(df: DataFrame, col: Series) -> Series:
     """Calculates impact for percent stat based on attempted."""
