@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Season</title>
+
+    <!-- Datatables + Bootstrap5 + jQuery3 -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css"/>
+     
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+    
+    <!-- Custom -->
+    <link rel="stylesheet" href="{{ url_for('table.static', filename='css/style.css') }}">   
+</head>
+<body>
+    <div id="content-grid">
+        <div id="header">
+            <img src="{{ url_for('table.static', filename="imgs/espn-fantasy-icon.png") }}">
+            <h1>Fantasy Basketball League Analyzer</h1>
+        </div>
+
+        <div id="filterContainer">
+            <div id="seasonDropdown" class="dropdown">
+                <span>Season</span>
+                <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="seasonButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    Season
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="seasonButon">
+                {% for season_id in season_ids %}
+                    <li><button class="btn-sm dropdown-item">{{ season_id }}</button></li>
+                {% endfor %}
+                </ul>
+            </div>
+
+            <div id="fantasyTeamDropdown" class="dropdown">
+                <span>Fantasy Team</span>
+                <button class="btn btn-primary btn-sm dropdown-toggle" type="button" id="fantasyTeamButton" data-bs-toggle="dropdown" aria-expanded="false">
+                    Fantasy Team
+                </button>
+                <ul class="dropdown-menu" aria-labelledby="fantasyTeamButton">
+                    <li><button class="btn-sm dropdown-item" value="">-- Show All Teams --</button></li>
+                {% for fantasy_team in fantasy_teams %}
+                    <li><button class="btn-sm dropdown-item" value={{ fantasy_team }}>{{ fantasy_team }}</button></li>
+                {% endfor %}
+                </ul>
+            </div>
+
+            <div id="catsInputContainer">
+                <div id="catsContainer">
+                {% for cat in cats %}
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="button" aria-pressed="false">{{ cat }}</button>
+                {% endfor %}
+                </div>
+                <div id="showCategoriesContainer">
+                    <button id="showCategoriesButton" class="btn btn-primary btn-sm">Show Categories</button>
+                </div>
+            </div>
+        </div>
+
+        
+        <div id="tableContainer">
+            <table id="seasonTable" class="table table-hover nowrap table-bordered table-sm">
+                <thead>
+                    <tr>
+                    {% for header in headers %}
+                        <td>{{ header }}</td>
+                    {% endfor %}
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        var default_season = {{ default_season|tojson }};
+        var headers = {{ headers|tojson }};
+        var columns = {{ columns|tojson }};
+        var col_index = {{ col_index|tojson }};
+        var load_season_url = "{{ url_for('table.load_season') }}"
+    </script>
+    <script src="{{ url_for('table.static', filename='js/season.js') }}"></script>
+</body>
+</html>

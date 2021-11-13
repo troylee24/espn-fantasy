@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Team</title>
+
+    <!-- Datatables + Bootstrap5 + jQuery3 -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css"/>
+     
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+    
+    <!-- Custom -->
+    <link rel="stylesheet" href="{{ url_for('table.static', filename='css/style.css') }}">
+</head>
+<body>
+    <div id="content-grid">
+        <div id="header">
+            <img src="{{ url_for('table.static', filename="imgs/espn-fantasy-icon.png") }}">
+            <h1>Fantasy Basketball League Analyzer</h1>
+        </div>
+
+        <div id="tableContainer">
+            <h4 style="text-align: center">Stats Table</h4>
+            <table id="recordTable" class="table table-hover nowrap">
+                <thead>
+                    <tr>
+                    {% for header in record_headers %}
+                        <td>{{ header }}</td>
+                    {% endfor %}
+                    </tr>
+                </thead>
+            </table>
+            <h4 style="text-align: center">Ranks Table</h4>
+            <table id="rankTable" class="table table-hover nowrap">
+                <thead>
+                    <tr>
+                    {% for header in rank_headers %}
+                        <td>{{ header }}</td>
+                    {% endfor %}
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+    <script>
+        var record_headers = {{ record_headers|tojson }};
+        var rank_headers = {{ rank_headers|tojson }};
+        var record_columns = {{ record_columns|tojson }};
+        var rank_columns = {{ rank_columns|tojson }};
+        var load_team_url = "{{ url_for('table.load_team') }}"
+    </script>
+    <script src="{{ url_for('table.static', filename='js/team.js') }}"></script>
+</body>
+</html>

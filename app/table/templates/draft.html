@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Draft</title>
+
+    <!-- Datatables + Bootstrap5 + jQuery3 -->
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.11.3/css/dataTables.bootstrap5.min.css"/>
+     
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.1/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.3/js/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="https://cdn.datatables.net/1.11.3/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- Custom -->
+    <link rel="stylesheet" href="{{ url_for('table.static', filename='css/style.css') }}"> 
+</head>
+<body>
+    <div id="content-grid">
+        <div id="header">
+            <img src="{{ url_for('table.static', filename="imgs/espn-fantasy-icon.png") }}">
+            <h1>Fantasy Basketball League Analyzer</h1>
+        </div>
+
+        <div id="tableContainer">
+            <ul class="nav nav-tabs" id="myTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="players-tab" data-bs-toggle="tab" data-bs-target="#players" type="button" role="tab" aria-controls="players" aria-selected="true">Players</a>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="team-tab" data-bs-toggle="tab" data-bs-target="#team" type="button" role="tab" aria-controls="team" aria-selected="true">Team</a>
+                </li>
+            </ul>
+            <div class="tab-content" id="myTabContent">
+                <div class="tab-pane show active" id="players" role="tabpanel" aria-labelledby="players-tab">
+                    <table id="playersTable" class="table table-hover nowrap table-bordered table-sm">
+                        <thead>
+                            <tr>
+                            {% for header in headers %}
+                                <td>{{ header }}</td>
+                            {% endfor %}
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div class="tab-pane" id="team" role="tabpanel" aria-labelledby="team-tab">
+                    <table id="teamTable" class="table table-hover nowrap table-bordered table-sm">
+                        <thead>
+                            <tr>
+                            {% for header in headers %}
+                                <td>{{ header }}</td>
+                            {% endfor %}
+                            </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var season_id = {{ season_id|tojson }};
+        var headers = {{ headers|tojson }};
+        var columns = {{ columns|tojson }};
+        var col_index = {{ col_index|tojson }};
+        var load_draft_url = "{{ url_for('table.load_draft') }}"        
+    </script>
+    <script src="{{ url_for('table.static', filename='js/draft.js') }}"></script>
+</body>
+</html>
